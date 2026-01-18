@@ -73,15 +73,11 @@ function TipsPage() {
       {/* Header */}
       <div className="tips-header">
         <div className="header-icons-group">
-          <div className="mascot-circle-small">
-            <img 
-              src="/images/bunny-magic-icon.png" 
-              alt="Luna AI" 
-              className="mascot-image-small"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }}
-            />
-            <span className="mascot-emoji-fallback-small" style={{ display: 'none' }}>🐰</span>
-          </div>
+          <img 
+            src="/images/computer_bunny.gif" 
+            alt="Luna AI" 
+            className="computer-bunny-gif"
+          />
         </div>
         <h1 className="tips-title">Chat with Luna</h1>
         <p className="tips-subtitle">Your AI cycle companion</p>
@@ -105,7 +101,11 @@ function TipsPage() {
             {chatHistory.map((message, idx) => (
               <div key={idx} className={`chat-message ${message.type}`}>
                 <div className="chat-message-avatar">
-                  {message.type === 'user' ? '👤' : '🐰'}
+                  <img 
+                    src={message.type === 'user' ? '/images/user.png' : '/images/ai_bunny.png'} 
+                    alt={message.type === 'user' ? 'User' : 'Luna'} 
+                    className="avatar-img"
+                  />
                 </div>
                 <div className="chat-message-content">
                   <div className="chat-message-text">{message.text}</div>
@@ -117,7 +117,13 @@ function TipsPage() {
             ))}
             {isAsking && (
               <div className="chat-message luna">
-                <div className="chat-message-avatar">🐰</div>
+                <div className="chat-message-avatar">
+                  <img 
+                    src="/images/ai_bunny.png" 
+                    alt="Luna" 
+                    className="avatar-img"
+                  />
+                </div>
                 <div className="chat-message-content">
                   <div className="chat-typing-indicator">
                     <span></span><span></span><span></span>

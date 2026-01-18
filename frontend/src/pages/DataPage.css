@@ -25,6 +25,12 @@
   font-size: 0.95rem;
 }
 
+.luna-logo {
+  max-width: 350px;
+  height: auto;
+  object-fit: contain;
+}
+
 /* Data Cards */
 .data-card {
   background: rgba(255, 255, 255, 0.8);

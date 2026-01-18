@@ -123,8 +123,11 @@ function HomePage() {
     <div className="data-page">
       {/* Header */}
       <div className="data-header">
-        <h1 className="data-title">Temperature Graph & Calendar</h1>
-        <p className="data-subtitle">Your body's signals, not averages</p>
+        <img 
+          src="/images/luna_logo.png" 
+          alt="Luna" 
+          className="luna-logo"
+        />
       </div>
 
       {/* Basal Body Temperature Chart */}

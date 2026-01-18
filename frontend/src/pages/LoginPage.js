@@ -27,18 +27,11 @@ function LoginPage({ onLogin }) {
       <div className="login-container">
         {/* Logo and title */}
         <div className="login-header">
-          <div className="logo-group">
-            <img src="/images/moon.png" alt="Moon" className="moon-icon" onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }} />
-            <span className="moon-icon-fallback" style={{ display: 'none' }}>🌙</span>
-            <div className="mascot-circle">
-              <img src="/images/mascot.png" alt="Luna Mascot" className="mascot-image" onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }} />
-              <span className="mascot-emoji-fallback" style={{ display: 'none' }}>🦘</span>
-            </div>
-            <img src="/images/sparkle.png" alt="Sparkle" className="sparkle-icon" onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }} />
-            <span className="sparkle-icon-fallback" style={{ display: 'none' }}>✨</span>
-          </div>
-          <h1 className="login-title">Luna</h1>
-          <p className="login-subtitle">Track your celestial cycle</p>
+          <img 
+            src="/images/luna_logo.png" 
+            alt="Luna" 
+            className="luna-logo"
+          />
         </div>
 
         {/* Form card */}
