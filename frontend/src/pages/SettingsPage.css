@@ -115,6 +115,21 @@
   color: var(--mauve);
 }
 
+.settings-date-input {
+  border: 1px solid rgba(157, 112, 137, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.settings-date-input:focus {
+  border-color: rgba(157, 112, 137, 0.45);
+  box-shadow: 0 0 0 3px rgba(157, 112, 137, 0.12);
+}
+
 /* Profile Section */
 .profile-info {
   display: flex;

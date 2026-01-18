@@ -2,6 +2,7 @@ import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import { getAllTemperatures } from '../db/temperatureRepository.js';
 import { detectCurrentPhase } from '../domain/cycleAnalysis.js';
+import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
 
 // Helper to get readings in the format expected by cycle analysis
 function getTemperatureReadings() {
@@ -37,7 +38,7 @@ function isModelRateLimited(modelName) {
   if (!rateLimitedModels[modelName]) return false;
   
   // Check if rate limit was today
-  const today = new Date();
+  const today = getCurrentDate();
   today.setHours(0, 0, 0, 0);
   const rateLimitDate = new Date(rateLimitedModels[modelName]);
   rateLimitDate.setHours(0, 0, 0, 0);
@@ -142,7 +143,7 @@ function buildBunnyPrompt(phaseInfo, todayData) {
   const avgBBT = phaseInfo.avgBBT ? phaseInfo.avgBBT.toFixed(2) : 'not available';
 
   // Get time of day for personalized greeting
-  const hour = new Date().getHours();
+  const hour = getCurrentDate().getHours();
   let timeGreeting = 'Hello';
   if (hour >= 5 && hour < 12) timeGreeting = 'Good morning';
   else if (hour >= 12 && hour < 17) timeGreeting = 'Good afternoon';
@@ -232,9 +233,9 @@ router.get('/', async (req, res) => {
     // Get dependencies from req (passed from server.js)
 
     // Get today's date string for caching
-    const today = new Date();
+    const today = getCurrentDate();
     today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getCurrentDateKeyUTC();
 
     // Check cache first - return cached response if available for today
     if (dailyCache[todayStr]) {
@@ -262,7 +263,7 @@ router.get('/', async (req, res) => {
     });
 
     const todayData = {
-      date: today.toISOString().split('T')[0],
+      date: todayStr,
       temperature: todayReading ? todayReading.temperature : null,
       hasReading: !!todayReading,
       phase: phaseInfo.phase,
@@ -339,7 +340,7 @@ router.get('/', async (req, res) => {
         metadata: {
           phase: phaseInfo.phase,
           phaseName: phaseInfo.phaseName,
-          timestamp: new Date().toISOString(),
+          timestamp: getCurrentDate().toISOString(),
           fallback: true,
           rateLimitExceeded: true,
           lastError: lastError?.message
@@ -388,7 +389,7 @@ router.get('/', async (req, res) => {
     bunnyResponse.metadata = {
       phase: phaseInfo.phase,
       phaseName: phaseInfo.phaseName,
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentDate().toISOString(),
       temperature: todayData.temperature,
       daysSinceOvulation: phaseInfo.daysSinceOvulation,
       model: usedModel
@@ -469,7 +470,7 @@ router.post('/ask', async (req, res) => {
     // Get current phase context for the conversation
     const askReadings = getTemperatureReadings();
     const phaseInfo = detectCurrentPhase(askReadings);
-    const today = new Date();
+    const today = getCurrentDate();
     today.setHours(0, 0, 0, 0);
     
     const todayReading = askReadings.find(r => {
@@ -479,7 +480,7 @@ router.post('/ask', async (req, res) => {
     });
 
     const todayData = {
-      date: today.toISOString().split('T')[0],
+      date: getCurrentDateKeyUTC(),
       temperature: todayReading ? todayReading.temperature : null,
       hasReading: !!todayReading,
       phase: phaseInfo.phase,
@@ -565,7 +566,7 @@ Keep your response concise (2-4 sentences) and conversational.`;
     res.json({
       question: question.trim(),
       answer: text,
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentDate().toISOString(),
       phase: phaseInfo.phase,
       phaseName: phaseInfo.phaseName,
       model: usedModel

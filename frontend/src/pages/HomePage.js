@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   LineChart,
@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import './DataPage.css';
 import './CalendarPage.css';
+import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate';
 
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
@@ -24,8 +25,8 @@ function HomePage() {
   const [avgTemp, setAvgTemp] = useState(null);
   const [ovulationMarkers, setOvulationMarkers] = useState([]);
   const [ovulation, setOvulation] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(getCurrentDate());
+  const [currentMonth, setCurrentMonth] = useState(getCurrentDate());
   const [calendarData, setCalendarData] = useState(null);
   const [todayData, setTodayData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,9 +34,41 @@ function HomePage() {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
+  const lastDateKeyRef = useRef(getCurrentDateKeyUTC());
+
   useEffect(() => {
-    fetchAllData();
+    fetchAllData(year, month);
   }, [year, month]);
+
+  useEffect(() => {
+    const handler = () => {
+      const now = getCurrentDate();
+      lastDateKeyRef.current = getCurrentDateKeyUTC();
+      setCurrentMonth(now);
+      setSelectedDate(now);
+      fetchAllData(now.getFullYear(), now.getMonth());
+    };
+    window.addEventListener('luna:sim-date-changed', handler);
+    return () => window.removeEventListener('luna:sim-date-changed', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // If the app stays open and “today” changes (real midnight, or demo date changes elsewhere),
+  // refetch so the menstruation countdown and predictions move.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const key = getCurrentDateKeyUTC();
+      if (key !== lastDateKeyRef.current) {
+        lastDateKeyRef.current = key;
+        const now = getCurrentDate();
+        setCurrentMonth(now);
+        setSelectedDate(now);
+        fetchAllData(now.getFullYear(), now.getMonth());
+      }
+    }, 30000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync selectedDate when currentMonth changes
   useEffect(() => {
@@ -43,7 +76,7 @@ function HomePage() {
     const selectedMonth = selectedDate.getMonth();
     
     if (selectedYear !== year || selectedMonth !== month) {
-      const today = new Date();
+      const today = getCurrentDate();
       if (today.getFullYear() === year && today.getMonth() === month) {
         setSelectedDate(new Date(year, month, today.getDate()));
       } else {
@@ -52,13 +85,13 @@ function HomePage() {
     }
   }, [year, month]);
 
-  const fetchAllData = async () => {
+  const fetchAllData = async (y = year, m = month) => {
     try {
       setLoading(true);
       const [tempRes, calendarRes, todayRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/data/chart`),
         axios.get(`${API_BASE_URL}/temperature/calendar`, {
-          params: { year, month }
+          params: { year: y, month: m }
         }),
         axios.get(`${API_BASE_URL}/temperature/today`)
       ]);
@@ -270,7 +303,7 @@ function HomePage() {
               month === selectedDate.getMonth() &&
               year === selectedDate.getFullYear();
 
-            const now = new Date();
+            const now = getCurrentDate();
             const isToday =
               day === now.getDate() &&
               month === now.getMonth() &&
@@ -343,65 +376,6 @@ function HomePage() {
           </div>
         ) : null;
       })()}
-
-      {/* Menstruation Countdown Bar - Only show after ovulation detected */}
-      {ovulation && ovulation.detected && todayData && todayData.daysSinceOvulation !== null && todayData.daysSinceOvulation >= 0 && (
-        <div className="countdown-card">
-          <div className="countdown-header">
-            <h3 className="countdown-title">Menstruation Countdown</h3>
-            <div className="countdown-badge">
-              {14 - todayData.daysSinceOvulation > 0 
-                ? `${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''} remaining`
-                : 'Expected soon'}
-            </div>
-          </div>
-          
-          <div className="countdown-bar-container">
-            <div className="countdown-bar">
-              {/* Progress fill showing days since ovulation */}
-              <div 
-                className="countdown-progress"
-                style={{ 
-                  width: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`
-                }}
-              />
-              
-              {/* Ovulation marker at start */}
-              <div className="countdown-start-marker">
-                <div className="marker-dot"></div>
-                <div className="marker-label">Ovulation</div>
-              </div>
-              
-              {/* Today marker - moving */}
-              <div 
-                className="countdown-marker"
-                style={{ 
-                  left: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`
-                }}
-              >
-                <div className="marker-dot"></div>
-                <div className="marker-label">Today</div>
-              </div>
-              
-              {/* Expected menstruation marker at end */}
-              <div className="countdown-end-marker">
-                <div className="marker-dot"></div>
-                <div className="marker-label">Period</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="countdown-info">
-            <p className="countdown-text">
-              {todayData.daysSinceOvulation === 0 
-                ? 'Ovulation detected today. Menstruation expected in ~14 days.'
-                : todayData.daysSinceOvulation < 14
-                ? `Day ${todayData.daysSinceOvulation} of 14. Menstruation expected in ${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''}.`
-                : 'Menstruation expected to start soon.'}
-            </p>
-          </div>
-        </div>
-      )}
 
     </div>
   );

@@ -12,6 +12,7 @@ import {
   seedSampleData
 } from '../db/temperatureRepository.js';
 import { detectCurrentPhase, detectOvulation } from '../domain/cycleAnalysis.js';
+import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
 
 const router = express.Router();
 
@@ -27,20 +28,25 @@ function getReadingsArray() {
 // POST /temperature - Receive BBT reading from ESP32
 router.post('/', (req, res) => {
   try {
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
-    console.log('temperatureC:', req.body.temperatureC);
-    
-    const { temperatureC } = req.body;
-    
-    if (!temperatureC) {
+    const { temperature, temperatureC, timestamp } = req.body;
+    const rawTemp = temperatureC ?? temperature;
+
+    if (rawTemp === undefined || rawTemp === null || rawTemp === '') {
       return res.status(400).json({ error: 'Missing temperature' });
     }
     
     // Convert Unix timestamp to ISO if needed
-    let isoTimestamp = new Date().toISOString();
+    let isoTimestamp;
+    if (timestamp === undefined || timestamp === null || timestamp === '') {
+      // For demo mode, respect simulated date if enabled
+      isoTimestamp = getCurrentDate().toISOString();
+    } else if (typeof timestamp === 'number' || /^\d+$/.test(String(timestamp))) {
+      isoTimestamp = new Date(parseInt(timestamp, 10) * 1000).toISOString();
+    } else {
+      isoTimestamp = new Date(timestamp).toISOString();
+    }
     
-    const reading = insertTemperature(parseFloat(temperatureC), isoTimestamp);
+    const reading = insertTemperature(parseFloat(rawTemp), isoTimestamp);
     
     // Cleanup old readings (keep last 90 days)
     cleanupOldReadings(90);
@@ -61,8 +67,7 @@ router.post('/', (req, res) => {
 // GET /temperature/today - Get today's summary (temperature, phase, prediction)
 router.get('/today', (req, res) => {
   try {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getCurrentDateKeyUTC();
     
     // Get today's reading if available
     const todayReading = getTemperatureForDate(todayStr);
@@ -109,8 +114,9 @@ router.get('/phase', (req, res) => {
 // GET /temperature/calendar - Get calendar data with phase information
 router.get('/calendar', (req, res) => {
   try {
-    const year = parseInt(req.query.year) || new Date().getFullYear();
-    const month = parseInt(req.query.month) || new Date().getMonth();
+    const base = getCurrentDate();
+    const year = parseInt(req.query.year) || base.getFullYear();
+    const month = parseInt(req.query.month) || base.getMonth();
     
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const calendarData = [];

@@ -1,5 +1,7 @@
 // ========== PHYSIOLOGY-FIRST CYCLE DETECTION ==========
 
+import { getCurrentDate } from '../utils/currentDate.js';
+
 /**
  * Detect ovulation based on BBT pattern (physiology-first approach)
  * Uses the "3-over-6" rule: 3 consecutive days at least 0.3°C above the previous 6 days
@@ -67,7 +69,7 @@ export function predictPeriodStart(ovulation) {
   const mostLikely = new Date(ovulationDate);
   mostLikely.setDate(mostLikely.getDate() + 13);
 
-  const today = new Date();
+  const today = getCurrentDate();
   today.setHours(0, 0, 0, 0);
   
   const daysUntilEarliest = Math.ceil((earliestPeriod - today) / (1000 * 60 * 60 * 24));
@@ -133,7 +135,7 @@ export function detectCurrentPhase(readings) {
 
   if (ovulation && ovulation.detected) {
     const ovulationDate = new Date(ovulation.date);
-    const today = new Date();
+    const today = getCurrentDate();
     today.setHours(0, 0, 0, 0);
     ovulationDate.setHours(0, 0, 0, 0);
     

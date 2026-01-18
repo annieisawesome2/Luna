@@ -26,6 +26,13 @@ router.put('/', (req, res) => {
     }
     if (preferences) {
       userSettings.preferences = { ...userSettings.preferences, ...preferences };
+      // Ensure nested simulation object merges cleanly
+      if (preferences.simulation) {
+        userSettings.preferences.simulation = {
+          ...userSettings.preferences.simulation,
+          ...preferences.simulation
+        };
+      }
     }
     if (device) {
       userSettings.device = { ...userSettings.device, ...device };

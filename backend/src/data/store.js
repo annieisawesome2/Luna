@@ -68,7 +68,12 @@ export const userSettings = {
     ovulationWindow: false
   },
   preferences: {
-    temperatureUnit: 'Celsius'
+    temperatureUnit: 'Celsius',
+    simulation: {
+      enabled: false,
+      // YYYY-MM-DD (interpreted as “simulated today”)
+      date: null
+    }
   },
   device: {
     connected: false,

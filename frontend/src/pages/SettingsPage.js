@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Switch from '../components/Switch';
 import './SettingsPage.css';
+import { getCurrentDateKeyUTC, setSimulationState } from '../utils/currentDate';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 function SettingsPage({ onSignOut }) {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [simEnabled, setSimEnabled] = useState(false);
+  const [simDate, setSimDate] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -17,7 +20,14 @@ function SettingsPage({ onSignOut }) {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE_URL}/settings`);
-      setSettings(response.data);
+      const s = response.data;
+      setSettings(s);
+      const enabled = !!s?.preferences?.simulation?.enabled;
+      const date = s?.preferences?.simulation?.date || '';
+      setSimEnabled(enabled);
+      setSimDate(date);
+      // Sync localStorage so the frontend date helpers match backend settings
+      setSimulationState({ enabled, date: date || null });
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
@@ -41,6 +51,34 @@ function SettingsPage({ onSignOut }) {
       }
     };
     updateSettings(updates);
+  };
+
+  const handleSimEnabledChange = async (enabled) => {
+    setSimEnabled(enabled);
+    // Default to today's date if enabling and no date is selected yet
+    const nextDate = enabled && !simDate
+      ? getCurrentDateKeyUTC()
+      : simDate;
+    setSimDate(nextDate);
+
+    setSimulationState({ enabled, date: nextDate || null });
+    await updateSettings({
+      preferences: {
+        simulation: { enabled, date: nextDate || null }
+      }
+    });
+    window.dispatchEvent(new Event('luna:sim-date-changed'));
+  };
+
+  const handleSimDateChange = async (date) => {
+    setSimDate(date);
+    setSimulationState({ enabled: simEnabled, date: date || null });
+    await updateSettings({
+      preferences: {
+        simulation: { enabled: simEnabled, date: date || null }
+      }
+    });
+    window.dispatchEvent(new Event('luna:sim-date-changed'));
   };
 
 
@@ -150,6 +188,41 @@ function SettingsPage({ onSignOut }) {
               onChange={(e) => handleNotificationChange('ovulationWindow', e.target.checked)}
             />
           </div>
+        </div>
+      </div>
+
+      {/* Demo Mode */}
+      <div className="settings-card">
+        <div className="card-header-with-icon">
+          <h2 className="card-title">Demo Mode</h2>
+        </div>
+
+        <div className="settings-list">
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">Simulate “today”</div>
+              <div className="setting-description">Pick a date to demo “next morning” behavior</div>
+            </div>
+            <Switch
+              checked={simEnabled}
+              onChange={(e) => handleSimEnabledChange(e.target.checked)}
+            />
+          </div>
+
+          {simEnabled && (
+            <div className="setting-item">
+              <div className="setting-info">
+                <div className="setting-label">Simulated date</div>
+                <div className="setting-description">This date is used for “today”, chart window, and predictions</div>
+              </div>
+              <input
+                type="date"
+                value={simDate}
+                onChange={(e) => handleSimDateChange(e.target.value)}
+                className="settings-date-input"
+              />
+            </div>
+          )}
         </div>
       </div>
 

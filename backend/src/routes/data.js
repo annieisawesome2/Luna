@@ -5,6 +5,7 @@ import {
   getReadingsCount 
 } from '../db/temperatureRepository.js';
 import { detectOvulation } from '../domain/cycleAnalysis.js';
+import { getCurrentDate } from '../utils/currentDate.js';
 
 const router = express.Router();
 
@@ -22,9 +23,12 @@ function isoDateUTC(value) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-function lastNDatesUTC(n) {
-  const now = new Date();
-  const baseUtcMidnightMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+function lastNDatesUTC(n, baseDate = new Date()) {
+  const baseUtcMidnightMs = Date.UTC(
+    baseDate.getUTCFullYear(),
+    baseDate.getUTCMonth(),
+    baseDate.getUTCDate()
+  );
   const dates = [];
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(baseUtcMidnightMs - i * 24 * 60 * 60 * 1000);
@@ -55,7 +59,7 @@ router.get('/chart', (req, res) => {
   try {
     // We want a true time-series: last 28 calendar dates (UTC), not “last 28 records”.
     const windowDays = 28;
-    const windowDates = lastNDatesUTC(windowDays); // oldest -> newest
+    const windowDates = lastNDatesUTC(windowDays, getCurrentDate()); // oldest -> newest
 
     const readings = getReadingsArray(); // oldest -> newest
     const ovulation = detectOvulation(readings);

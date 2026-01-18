@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './TipsPage.css';
+import { getCurrentDate } from '../utils/currentDate';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
@@ -22,7 +23,7 @@ function TipsPage() {
     const newUserMessage = {
       type: 'user',
       text: userQuestion,
-      timestamp: new Date().toISOString()
+      timestamp: getCurrentDate().toISOString()
     };
     setChatHistory(prev => [...prev, newUserMessage]);
 
@@ -59,7 +60,7 @@ function TipsPage() {
       const errorResponse = {
         type: 'luna',
         text: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: getCurrentDate().toISOString(),
         error: true
       };
       setChatHistory(prev => [...prev, errorResponse]);
