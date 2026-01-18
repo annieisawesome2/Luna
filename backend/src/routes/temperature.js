@@ -16,6 +16,23 @@ import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
 const router = express.Router();
 const ESP_BASE_URL = 'http://172.20.10.8';
 
+async function fetchEspTemperatureJson() {
+  // Try the endpoint you confirmed first, then fall back to a simpler path.
+  const paths = ['/api/temperature', '/temperature'];
+  let lastStatus = null;
+
+  for (const path of paths) {
+    const resp = await fetch(`${ESP_BASE_URL}${path}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    });
+    lastStatus = resp.status;
+    if (resp.ok) return resp.json();
+  }
+
+  throw new Error(`ESP responded with ${lastStatus}`);
+}
+
 // Helper to get readings in the format expected by cycle analysis
 function getReadingsArray() {
   return getAllTemperatures().reverse().map(r => ({
@@ -29,12 +46,7 @@ function getReadingsArray() {
 router.post('/', async (req, res) => {
 
   try {
-    const response = await fetch(`${ESP_BASE_URL}/temperature`);
-
-    if (!response.ok) {
-      throw new Error(`ESP responded with ${response.status}`);
-    }
-    const data = await response.json();
+    const data = await fetchEspTemperatureJson();
     const { temperatureC } = data;
 
     if (!temperatureC) {

@@ -145,6 +145,25 @@
   box-shadow: 0 0 0 3px rgba(157, 112, 137, 0.12);
 }
 
+.temp-fetch-status {
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(157, 112, 137, 0.2);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-primary);
+}
+
+.temp-fetch-status.success {
+  border-color: rgba(76, 175, 80, 0.35);
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.temp-fetch-status.error {
+  border-color: rgba(193, 74, 74, 0.35);
+  background: rgba(193, 74, 74, 0.08);
+}
+
 /* Profile Section */
 .profile-info {
   display: flex;

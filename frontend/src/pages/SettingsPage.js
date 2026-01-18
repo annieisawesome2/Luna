@@ -11,6 +11,8 @@ function SettingsPage({ onSignOut }) {
   const [loading, setLoading] = useState(true);
   const [simEnabled, setSimEnabled] = useState(false);
   const [simDate, setSimDate] = useState('');
+  const [isFetchingTemp, setIsFetchingTemp] = useState(false);
+  const [fetchTempStatus, setFetchTempStatus] = useState(null); // { type: 'success'|'error', message: string }
 
   useEffect(() => {
     fetchSettings();
@@ -41,6 +43,31 @@ function SettingsPage({ onSignOut }) {
       setSettings(response.data.settings);
     } catch (err) {
       console.error('Error updating settings:', err);
+    }
+  };
+
+  const fetchTemperatureToDatabase = async () => {
+    // Calls backend POST /api/temperature, which fetches from ESP32 and saves to SQLite.
+    return await axios.post(`${API_BASE_URL}/temperature`);
+  };
+
+  const handleFetchTemperatureNow = async () => {
+    setIsFetchingTemp(true);
+    setFetchTempStatus(null);
+    try {
+      const resp = await fetchTemperatureToDatabase();
+      const reading = resp?.data?.reading;
+      const temp = reading?.temperature;
+      const ts = reading?.timestamp ? new Date(reading.timestamp).toLocaleString() : null;
+      setFetchTempStatus({
+        type: 'success',
+        message: `Saved ${temp ?? 'temperature'}°C${ts ? ` at ${ts}` : ''}`
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      setFetchTempStatus({ type: 'error', message: msg || 'Failed to fetch temperature' });
+    } finally {
+      setIsFetchingTemp(false);
     }
   };
 
@@ -205,6 +232,37 @@ function SettingsPage({ onSignOut }) {
                 onChange={(e) => handleSimDateChange(e.target.value)}
                 className="settings-date-input"
               />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Hardware */}
+      <div className="settings-card">
+        <div className="card-header-with-icon">
+          <h2 className="card-title">Hardware</h2>
+        </div>
+
+        <div className="settings-list">
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-label">ESP32 temperature</div>
+              <div className="setting-description">Fetch the latest reading and save it to the database</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="settings-button primary"
+            onClick={handleFetchTemperatureNow}
+            disabled={isFetchingTemp}
+          >
+            {isFetchingTemp ? 'Fetching…' : 'Fetch temperature now'}
+          </button>
+
+          {fetchTempStatus && (
+            <div className={`temp-fetch-status ${fetchTempStatus.type}`}>
+              {fetchTempStatus.message}
             </div>
           )}
         </div>
