@@ -356,7 +356,11 @@ function HomePage() {
               </div>
               {selectedDayData.isOvulationDay && (
                 <div className="ovulation-day-badge">
-                  <span className="ovulation-icon-small">✨</span>
+                  <img
+                    src="/images/star.png"
+                    alt="Ovulation"
+                    className="ovulation-star-small"
+                  />
                   <span>Ovulation Detected</span>
                 </div>
               )}

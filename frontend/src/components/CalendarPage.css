@@ -296,6 +296,13 @@
   font-size: 1rem;
 }
 
+.ovulation-star-small {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
 /* Phase Legend Card */
 .legend-card {
   background: rgba(255, 255, 255, 0.8);
