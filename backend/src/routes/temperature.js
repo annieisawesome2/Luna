@@ -4,7 +4,6 @@ import express from 'express';
 import { 
   insertTemperature, 
   getAllTemperatures, 
-  getTemperaturesForDays,
   getTemperatureForDate,
   getTemperaturesForMonth,
   getReadingsCount,
@@ -13,6 +12,7 @@ import {
 } from '../db/temperatureRepository.js';
 import { detectCurrentPhase, detectOvulation } from '../domain/cycleAnalysis.js';
 import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
+import { userSettings } from '../data/store.js';
 
 const router = express.Router();
 
@@ -28,26 +28,18 @@ function getReadingsArray() {
 // POST /temperature - Receive BBT reading from ESP32
 router.post('/', (req, res) => {
   try {
-    const { temperature, temperatureC, timestamp } = req.body;
-    const rawTemp = temperatureC ?? temperature;
+    const { temperatureC } = req.body;
 
-    if (rawTemp === undefined || rawTemp === null || rawTemp === '') {
+    if (!temperatureC) {
       return res.status(400).json({ error: 'Missing temperature' });
     }
-    
-    // Convert Unix timestamp to ISO if needed
-    let isoTimestamp;
-    if (timestamp === undefined || timestamp === null || timestamp === '') {
-      // For demo mode, respect simulated date if enabled
-      isoTimestamp = getCurrentDate().toISOString();
-    } else if (typeof timestamp === 'number' || /^\d+$/.test(String(timestamp))) {
-      isoTimestamp = new Date(parseInt(timestamp, 10) * 1000).toISOString();
-    } else {
-      isoTimestamp = new Date(timestamp).toISOString();
-    }
-    
-    const reading = insertTemperature(parseFloat(rawTemp), isoTimestamp);
-    
+
+    console.log(`current date: ${getCurrentDate().toISOString()}`);
+    console.log(`user settings: ${userSettings}`);
+
+    let isoTimestamp = getCurrentDate().toISOString();
+    const reading = insertTemperature(parseFloat(temperatureC), isoTimestamp);
+        
     // Cleanup old readings (keep last 90 days)
     cleanupOldReadings(90);
     
