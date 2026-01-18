@@ -227,28 +227,6 @@ function CalendarPage() {
         ) : null;
       })()}
 
-      {/* Phase Legend Card */}
-      <div className="legend-card">
-        <h3 className="legend-title">Detected Phases</h3>
-        
-        <div className="legend-items">
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#93a7d1' }}></div>
-            <span className="legend-text">Pre-Ovulation / Ovulation</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#9d7089' }}></div>
-            <span className="legend-text">Luteal Phase (Post-Ovulation)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#c14a4a' }}></div>
-            <span className="legend-text">Pre-Menstrual</span>
-          </div>
-        </div>
-        <p className="legend-note" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '12px', fontStyle: 'italic' }}>
-          Phases are detected from your temperature patterns, not calendar dates.
-        </p>
-      </div>
     </div>
   );
 }
