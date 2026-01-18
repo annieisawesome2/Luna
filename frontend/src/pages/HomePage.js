@@ -119,6 +119,18 @@ function HomePage() {
     );
   }
 
+  const formatChartDate = (dateStr) => {
+    // dateStr is YYYY-MM-DD (UTC). Use midday UTC to avoid timezone day-shifts when formatting.
+    try {
+      return new Date(`${dateStr}T12:00:00Z`).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="data-page">
       {/* Header */}
@@ -141,11 +153,13 @@ function HomePage() {
             <LineChart data={temperatureData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#d4d8ed" />
               <XAxis
-                dataKey="day"
-                label={{ value: "Days of Tracking", position: "insideBottom", offset: 5 }}
+                dataKey="date"
+                label={{ value: "Date", position: "insideBottom", offset: 5 }}
                 stroke="#4a2f3f"
                 tick={{ fill: "#4a2f3f", fontSize: 12 }}
                 height={60}
+                tickFormatter={formatChartDate}
+                interval="preserveStartEnd"
               />
               <YAxis
                 domain={[36, 37]}
@@ -160,21 +174,31 @@ function HomePage() {
                   borderRadius: "1rem",
                   padding: "0.5rem",
                 }}
-                formatter={(value) => [`${value}°C`, 'BBT']}
+                labelFormatter={(label) => formatChartDate(label)}
+                formatter={(value) => {
+                  if (value === null || value === undefined) return ['—', 'BBT'];
+                  return [`${value}°C`, 'BBT'];
+                }}
               />
               <Line
                 type="monotone"
                 dataKey="temp"
                 stroke="#9d7089"
                 strokeWidth={3}
+                connectNulls={true}
                 dot={(props) => {
                   const { cx, cy, payload } = props;
+                  if (!payload || payload.temp === null || payload.temp === undefined) return null;
                   if (payload && payload.isOvulationDay) {
                     return <circle cx={cx} cy={cy} r={6} fill="#93a7d1" stroke="#fff" strokeWidth={2} />;
                   }
                   return <circle cx={cx} cy={cy} r={4} fill="#9d7089" strokeWidth={2} />;
                 }}
-                activeDot={{ r: 6 }}
+                activeDot={(props) => {
+                  const { cx, cy, payload } = props;
+                  if (!payload || payload.temp === null || payload.temp === undefined) return null;
+                  return <circle cx={cx} cy={cy} r={6} fill="#9d7089" stroke="#fff" strokeWidth={2} />;
+                }}
               />
             </LineChart>
           </ResponsiveContainer>

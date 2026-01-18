@@ -17,6 +17,22 @@ function getReadingsArray() {
   }));
 }
 
+function isoDateUTC(value) {
+  // Always normalize to a YYYY-MM-DD key in UTC
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function lastNDatesUTC(n) {
+  const now = new Date();
+  const baseUtcMidnightMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const dates = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(baseUtcMidnightMs - i * 24 * 60 * 60 * 1000);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
 // GET /data - Get historical BBT data
 router.get('/', (req, res) => {
   try {
@@ -37,53 +53,64 @@ router.get('/', (req, res) => {
 // GET /data/chart - Get BBT data formatted for charts with ovulation markers
 router.get('/chart', (req, res) => {
   try {
-    const readings = getReadingsArray();
-    const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
-    if (sorted.length === 0) {
-      return res.json({ 
-        temperatureData: [], 
-        avgTemp: null,
-        ovulationMarkers: [],
-        message: 'No temperature data yet. Add readings via POST /api/temperature or POST /api/temperature/seed'
-      });
+    // We want a true time-series: last 28 calendar dates (UTC), not “last 28 records”.
+    const windowDays = 28;
+    const windowDates = lastNDatesUTC(windowDays); // oldest -> newest
+
+    const readings = getReadingsArray(); // oldest -> newest
+    const ovulation = detectOvulation(readings);
+    const ovulationDateKey = ovulation?.detected ? isoDateUTC(ovulation.date) : null;
+
+    // Map latest reading per date (if multiple readings exist in a day)
+    const all = getAllTemperatures(); // newest -> oldest (repo order)
+    const latestByDate = new Map();
+    for (const r of all) {
+      const key = isoDateUTC(r.timestamp);
+      if (!latestByDate.has(key)) latestByDate.set(key, r);
     }
 
-    // Detect ovulation
-    const ovulation = detectOvulation(readings);
-    
-    // Format data with day numbers (days since first reading)
-    const firstReading = sorted[0];
-    const chartData = sorted.map((reading, index) => {
-      const daysSinceFirst = Math.floor((new Date(reading.timestamp) - new Date(firstReading.timestamp)) / (1000 * 60 * 60 * 24));
-      const isOvulationDay = ovulation && ovulation.detected && 
-        new Date(reading.timestamp).toISOString().split('T')[0] === ovulation.date.toISOString().split('T')[0];
-      
+    const temperatureData = windowDates.map((dateKey, idx) => {
+      const reading = latestByDate.get(dateKey);
+      const temp = reading ? reading.temperature : null;
       return {
-        day: daysSinceFirst + 1, // Day 1, 2, 3, etc.
-        temp: reading.temperature,
-        date: reading.timestamp,
-        isOvulationDay: isOvulationDay || false
+        index: idx + 1,
+        date: dateKey, // YYYY-MM-DD (UTC)
+        temp,
+        hasReading: !!reading,
+        timestamp: reading ? reading.timestamp : null,
+        isOvulationDay: !!(ovulationDateKey && ovulationDateKey === dateKey),
       };
     });
 
-    // Calculate average temperature
-    const avgTemp = sorted.reduce((sum, r) => sum + r.temperature, 0) / sorted.length;
+    const tempsInWindow = temperatureData.map(d => d.temp).filter(v => typeof v === 'number');
+    const avgTemp = tempsInWindow.length
+      ? tempsInWindow.reduce((sum, v) => sum + v, 0) / tempsInWindow.length
+      : null;
 
-    // Get ovulation markers for the chart
-    const ovulationMarkers = ovulation && ovulation.detected ? [{
-      day: chartData.findIndex(d => d.isOvulationDay) + 1,
-      date: ovulation.date.toISOString().split('T')[0],
-      temperature: ovulation.postOvulationTemp,
-      confidence: ovulation.confidence
-    }] : [];
+    const ovulationIndex = ovulationDateKey
+      ? temperatureData.findIndex(d => d.isOvulationDay)
+      : -1;
+
+    const ovulationMarkers = ovulation?.detected && ovulationIndex !== -1
+      ? [{
+          date: ovulationDateKey,
+          index: ovulationIndex + 1,
+          temperature: ovulation.postOvulationTemp,
+          confidence: ovulation.confidence,
+        }]
+      : [];
 
     res.json({
-      temperatureData: chartData,
-      avgTemp: parseFloat(avgTemp.toFixed(1)),
-      ovulationMarkers: ovulationMarkers,
-      ovulation: ovulation,
-      totalReadings: getReadingsCount()
+      temperatureData,
+      avgTemp: avgTemp === null ? null : parseFloat(avgTemp.toFixed(2)),
+      ovulationMarkers,
+      ovulation,
+      totalReadings: getReadingsCount(),
+      window: {
+        days: windowDays,
+        start: windowDates[0],
+        end: windowDates[windowDates.length - 1],
+      },
     });
   } catch (error) {
     console.error('Error fetching chart data:', error);
