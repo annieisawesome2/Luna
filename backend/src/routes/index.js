@@ -2,6 +2,7 @@ import express from 'express';
 import temperatureRoutes from './temperature.js';
 import dataRoutes from './data.js';
 import settingsRoutes from './settings.js';
+import bunnyRoutes from './bunny.js';
 
 // ../api/..
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get('/', (req, res) => {
 router.use('/temperature', temperatureRoutes);
 router.use('/data', dataRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/bunny', bunnyRoutes);
 
 export default router;

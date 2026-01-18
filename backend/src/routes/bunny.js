@@ -1,6 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { GoogleGenAI } from '@google/genai';
+import { temperatureReadings } from '../data/store.js';
+import { detectCurrentPhase } from '../domain/cycleAnalysis.js';
+
 const router = express.Router();
-const { GoogleGenAI } = require('@google/genai');
 
 // Cache for daily responses (to avoid hitting rate limits)
 // Key: date string (YYYY-MM-DD), Value: cached response
@@ -218,7 +221,6 @@ Remember: You're Luna the bunny - be warm, supportive, and make them feel unders
 router.get('/', async (req, res) => {
   try {
     // Get dependencies from req (passed from server.js)
-    const { temperatureReadings, detectCurrentPhase } = req.app.locals;
 
     // Get today's date string for caching
     const today = new Date();
@@ -437,7 +439,6 @@ router.get('/', async (req, res) => {
 router.post('/ask', async (req, res) => {
   try {
     const { question } = req.body;
-    const { temperatureReadings, detectCurrentPhase } = req.app.locals;
 
     if (!question || question.trim().length === 0) {
       return res.status(400).json({
@@ -633,4 +634,4 @@ router.get('/models', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
