@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Luna Color Palette */
+  --brown: #937666;
+  --mauve: #9d7089;
+  --light-mauve: #b9a4ba;
+  --black: #000000;
+  --pale-lavender: #d4d8ed;
+  --lavender: #9ea9d5;
+  --dark-plum: #4a2f3f;
+  --navy: #3d4553;
+  --periwinkle: #93a7d1;
+  
+  /* Theme Colors */
+  --background: #f5f2f0;
+  --foreground: #1a1a1a;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --text-primary: #4a2f3f;
+  --text-secondary: rgba(74, 47, 63, 0.7);
+  --text-muted: rgba(74, 47, 63, 0.6);
+  --border-color: rgba(157, 112, 137, 0.2);
+  --border-color-light: rgba(157, 112, 137, 0.1);
+  
+  /* Phase Colors */
+  --period-red: #c14a4a;
+  --ovulation-blue: #93a7d1;
+  --luteal-purple: #9d7089;
+  --follicular-green: #4caf50;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+
+body {
+  font-family: 'Lora', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f5f2f0 0%, #d4d8ed 50%, #b9a4ba 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding: 10px;
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding: 20px;
+  }
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

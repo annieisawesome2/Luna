@@ -1,0 +1,257 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f2f0 0%, #d4d8ed 50%, #b9a4ba 100%);
+  background-attachment: fixed;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 10;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.moon-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  color: var(--mauve);
+}
+
+.moon-icon-fallback {
+  font-size: 3rem;
+  color: var(--mauve);
+}
+
+.mascot-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(157, 112, 137, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.mascot-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascot-emoji-fallback {
+  font-size: 2.5rem;
+  position: absolute;
+}
+
+.sparkle-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.sparkle-icon-fallback {
+  font-size: 2rem;
+  color: var(--periwinkle);
+}
+
+.login-title {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.login-subtitle {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 1rem;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 2rem;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.decorative-line {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.line-segment {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.line-segment.long {
+  width: 64px;
+  background: linear-gradient(to right, var(--mauve), var(--periwinkle));
+  opacity: 0.6;
+}
+
+.line-segment.short {
+  width: 32px;
+  background: var(--light-mauve);
+  opacity: 0.4;
+}
+
+.form-title {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 12px 16px;
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--mauve);
+  box-shadow: 0 0 0 3px rgba(157, 112, 137, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.login-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--mauve) 0%, var(--periwinkle) 100%);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(157, 112, 137, 0.3);
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.login-button:hover {
+  background: linear-gradient(135deg, #8d6079 0%, #8397c1 100%);
+  box-shadow: 0 6px 16px rgba(157, 112, 137, 0.4);
+  transform: translateY(-1px);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+.form-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.toggle-link {
+  background: none;
+  border: none;
+  color: var(--mauve);
+  font-style: italic;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.toggle-link:hover {
+  color: #8d6079;
+}
+
+.sparkles {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.sparkle {
+  font-size: 1rem;
+  opacity: 0.6;
+  color: var(--mauve);
+}
+
+.sparkle.small {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  color: var(--periwinkle);
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 24px;
+  }
+
+  .login-title {
+    font-size: 2rem;
+  }
+
+  .moon-icon {
+    font-size: 2.5rem;
+  }
+
+  .mascot-circle {
+    width: 56px;
+    height: 56px;
+  }
+
+  .mascot-emoji {
+    font-size: 2rem;
+  }
+}

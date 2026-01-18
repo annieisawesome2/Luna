@@ -1,0 +1,129 @@
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f2f0 0%, #d4d8ed 50%, #b9a4ba 100%);
+  background-attachment: fixed;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 30px 20px 20px;
+  position: relative;
+}
+
+.app-header::after {
+  content: '';
+  display: block;
+  width: 200px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--mauve), transparent);
+  margin: 15px auto 0;
+  opacity: 0.4;
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.app-header .header-icon {
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
+  margin-right: 8px;
+  object-fit: contain;
+}
+
+.app-header .emoji-fallback {
+  display: none;
+}
+
+.header-icon[src=""],
+.header-icon:not([src]) {
+  display: none;
+}
+
+.header-icon:not([src]) + .emoji-fallback {
+  display: inline;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .app-header h1 {
+    font-size: 3rem;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  padding: 50px;
+}
+
+.error-banner {
+  background: rgba(212, 24, 61, 0.1);
+  border: 2px solid rgba(212, 24, 61, 0.3);
+  color: var(--text-primary);
+  padding: 15px;
+  border-radius: 1.5rem;
+  margin: 20px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 20px;
+}
+
+@media (min-width: 768px) {
+  .dashboard {
+    gap: 24px;
+  }
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 30px 20px;
+  margin-top: 40px;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Card base styles */
+.luna-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+}
+
+.luna-card h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}

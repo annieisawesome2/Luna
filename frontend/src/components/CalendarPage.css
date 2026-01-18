@@ -1,0 +1,305 @@
+.calendar-page {
+  padding: 16px;
+  padding-bottom: 100px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* Header Section */
+.calendar-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.calendar-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.mascot-circle-small {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(157, 112, 137, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.mascot-image-small {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascot-emoji-fallback-small {
+  font-size: 1.5rem;
+  position: absolute;
+}
+
+.calendar-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Calendar Card */
+.calendar-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
+.month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.nav-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(157, 112, 137, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--mauve);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.nav-button:hover {
+  background: rgba(157, 112, 137, 0.2);
+}
+
+.month-year {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.day-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.day-label {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day-empty {
+  aspect-ratio: 1;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.calendar-day:hover {
+  background: var(--pale-lavender);
+}
+
+.calendar-day.selected {
+  background: linear-gradient(135deg, var(--mauve) 0%, var(--periwinkle) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(157, 112, 137, 0.3);
+  transform: scale(1.05);
+}
+
+.day-number {
+  font-weight: 500;
+}
+
+.phase-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+/* Month Progress Card */
+.progress-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(147, 167, 209, 0.2);
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.progress-ring-container {
+  display: flex;
+  justify-content: center;
+}
+
+.progress-ring-wrapper {
+  position: relative;
+  width: 192px;
+  height: 192px;
+}
+
+.progress-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-day-number {
+  font-size: 1.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.progress-day-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.progress-indicator-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--mauve);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  margin-left: -8px;
+  margin-top: -8px;
+  transform-origin: 8px 8px;
+}
+
+/* Phase Legend Card */
+.legend-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.legend-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 10;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-text {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .calendar-page {
+    padding: 12px;
+    padding-bottom: 100px;
+  }
+
+  .calendar-title {
+    font-size: 1.25rem;
+  }
+
+  .mascot-circle-small {
+    width: 40px;
+    height: 40px;
+  }
+}

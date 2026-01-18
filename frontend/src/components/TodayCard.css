@@ -1,0 +1,187 @@
+.today-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+}
+
+.card-title {
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title::after {
+  content: '🌙';
+  font-size: 1.5rem;
+}
+
+.today-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.phase-badge {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  border: 2px solid;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.phase-icon-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phase-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.phase-emoji-fallback {
+  font-size: 2.5rem;
+  position: absolute;
+}
+
+.inline-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.emoji-fallback {
+  display: none;
+}
+
+.inline-icon[src=""],
+.inline-icon:not([src]) {
+  display: none;
+}
+
+.inline-icon:not([src]) + .emoji-fallback {
+  display: inline;
+}
+
+.phase-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cycle-day {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.temperature-display {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--mauve) 0%, var(--periwinkle) 100%);
+  border-radius: 1rem;
+  color: white;
+}
+
+.temp-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+.temp-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.temp-avg {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.no-reading {
+  text-align: center;
+  padding: 30px 20px;
+  background: var(--pale-lavender);
+  border-radius: 1rem;
+  color: var(--text-secondary);
+}
+
+.no-reading p {
+  margin: 10px 0;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+}
+
+.tip-section {
+  padding: 16px;
+  background: linear-gradient(to right, rgba(147, 167, 209, 0.1), transparent);
+  border-radius: 1rem;
+  border-left: 3px solid var(--periwinkle);
+}
+
+.tip-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.tip-text {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .today-card {
+    padding: 15px;
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+  
+  .temp-value {
+    font-size: 2rem;
+  }
+  
+  .phase-emoji {
+    font-size: 2rem;
+  }
+  
+  .phase-name {
+    font-size: 1.1rem;
+  }
+  
+  .phase-badge {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .temperature-display {
+    padding: 15px;
+  }
+}

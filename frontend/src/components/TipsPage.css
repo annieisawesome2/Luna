@@ -1,0 +1,270 @@
+.tips-page {
+  padding: 24px;
+  padding-bottom: 100px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* Header */
+.tips-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.header-icons-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.tips-icon-fallback {
+  font-size: 2.5rem;
+  color: var(--mauve);
+}
+
+.mascot-circle-small {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(157, 112, 137, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.mascot-image-small {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascot-emoji-fallback-small {
+  font-size: 1.5rem;
+  position: absolute;
+}
+
+.tips-title {
+  font-size: 1.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.tips-subtitle {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+/* Decorative Line */
+.decorative-line {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.gradient-line {
+  width: 128px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--mauve), transparent);
+  border-radius: 1px;
+  opacity: 0.4;
+}
+
+/* Phase Tips Cards */
+.phase-tips-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.phase-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phase-icon {
+  font-size: 1.5rem;
+}
+
+.phase-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tip-item {
+  border-left: 2px solid;
+  padding-left: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.tip-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.tip-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* General Tips Card */
+.general-tips-card {
+  background: linear-gradient(135deg, rgba(157, 112, 137, 0.1) 0%, rgba(147, 167, 209, 0.1) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.general-tips-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.general-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.general-tip-item {
+  display: flex;
+  gap: 12px;
+}
+
+.general-tip-icon {
+  font-size: 1.25rem;
+  color: var(--mauve);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.general-tip-content {
+  flex: 1;
+}
+
+.general-tip-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.general-tip-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Disclaimer Card */
+.disclaimer-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(147, 167, 209, 0.2);
+}
+
+.disclaimer-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.disclaimer-text strong {
+  color: var(--text-primary);
+}
+
+/* Decorative Sparkles */
+.decorative-sparkles {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.sparkle {
+  font-size: 1rem;
+  opacity: 0.6;
+  color: var(--mauve);
+}
+
+.sparkle.small {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  color: var(--periwinkle);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .tips-page {
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  .tips-title {
+    font-size: 1.5rem;
+  }
+
+  .phase-icon-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .phase-icon {
+    font-size: 1.25rem;
+  }
+}

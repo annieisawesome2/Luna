@@ -1,0 +1,168 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.bottom-nav-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.bottom-nav-content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 64px;
+}
+
+.nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 8px;
+  gap: 4px;
+}
+
+.nav-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.nav-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  transition: all 0.2s;
+}
+
+.nav-icon-fallback {
+  font-size: 1.25rem;
+  position: absolute;
+  transition: all 0.2s;
+}
+
+.moon-icon-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.moon-icon-fallback {
+  font-size: 2.5rem;
+  position: absolute;
+}
+
+.nav-label {
+  font-size: 0.625rem;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.nav-button.active .nav-icon,
+.nav-button.active .nav-label {
+  color: var(--mauve);
+}
+
+.nav-button:not(.active) .nav-icon,
+.nav-button:not(.active) .nav-label {
+  color: var(--text-secondary);
+}
+
+.moon-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: -48px;
+  transition: all 0.3s;
+}
+
+.moon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s;
+  background: linear-gradient(135deg, var(--light-mauve) 0%, var(--lavender) 100%);
+}
+
+.moon-circle.active {
+  background: linear-gradient(135deg, var(--mauve) 0%, var(--periwinkle) 100%);
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(157, 112, 137, 0.4);
+}
+
+.moon-icon {
+  font-size: 2.5rem;
+  color: white;
+}
+
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--periwinkle);
+  animation: pulse 2s infinite;
+}
+
+.sparkle-1 {
+  top: 8px;
+  right: 8px;
+}
+
+.sparkle-2 {
+  top: 16px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--mauve);
+  animation-delay: 0.15s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .moon-circle {
+    width: 72px;
+    height: 72px;
+  }
+
+  .moon-icon {
+    font-size: 2rem;
+  }
+
+  .moon-button {
+    margin-top: -44px;
+  }
+}
