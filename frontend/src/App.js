@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import LoginPage from './components/LoginPage';
+import LoginPage from './pages/LoginPage';
 import BottomNav from './components/BottomNav';
-import HomePage from './components/HomePage';
-import TipsPage from './components/TipsPage';
-import SettingsPage from './components/SettingsPage';
+import HomePage from './pages/HomePage';
+import TipsPage from './pages/TipsPage';
+import SettingsPage from './pages/SettingsPage';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
