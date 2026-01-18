@@ -94,27 +94,11 @@ function SettingsPage({ onSignOut }) {
     <div className="settings-page">
       {/* Header */}
       <div className="settings-header">
-        <div className="header-icons-group">
-          <img 
-            src="/images/settings-icon.png" 
-            alt="User" 
-            className="header-icon settings-icon-img"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-          />
-          <span className="settings-icon-fallback" style={{ display: 'none' }}>⚙️</span>
-          
-          <div className="mascot-circle-small">
-            <img 
-              src="/images/mascot.png" 
-              alt="Luna Mascot" 
-              className="mascot-image-small"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }}
-            />
-            <span className="mascot-emoji-fallback-small" style={{ display: 'none' }}>🦘</span>
-          </div>
-        </div>
-        <h1 className="settings-title">Settings</h1>
-        <p className="settings-subtitle">Customize your experience</p>
+        <img
+          src="/images/settings.png"
+          alt="Settings"
+          className="settings-logo"
+        />
       </div>
 
       {/* Profile Section */}
@@ -124,12 +108,12 @@ function SettingsPage({ onSignOut }) {
         <div className="profile-info">
           <div className="profile-avatar">
             <img 
-              src="/images/moon.png" 
-              alt="Moon" 
-              className="avatar-icon"
+              src="/images/user_bunny.png" 
+              alt="User" 
+              className="avatar-icon user-bunny-icon"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
             />
-            <span className="avatar-icon-fallback" style={{ display: 'none' }}>🌙</span>
+            <span className="avatar-icon-fallback" style={{ display: 'none' }}>👤</span>
           </div>
           <div className="profile-details">
             <div className="profile-name">{settings.profile.name}</div>
@@ -146,9 +130,9 @@ function SettingsPage({ onSignOut }) {
       <div className="settings-card">
         <div className="card-header-with-icon">
           <img 
-            src="/images/notification-icon.png" 
+            src="/images/bell.png" 
             alt="Bell" 
-            className="section-icon"
+            className="section-icon notifications-icon"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
           />
           <span className="section-icon-fallback" style={{ display: 'none' }}>🔔</span>
