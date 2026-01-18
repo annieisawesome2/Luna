@@ -4,26 +4,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Initialize Google Gemini (API key from environment variable)
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-let geminiModel = null;
-
-if (GEMINI_API_KEY) {
-  try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    console.log('✓ Google Gemini initialized');
-  } catch (error) {
-    console.warn('⚠ Gemini initialization failed, will use static tips:', error.message);
-  }
-} else {
-  console.log('ℹ GEMINI_API_KEY not set, using static tips');
-}
 
 // Middleware
 app.use(cors({
@@ -137,131 +120,6 @@ function calculateCyclePhase(readings) {
   };
 }
 
-// ========== GEMINI AI INTEGRATION ==========
-
-/**
- * Generate personalized tip using Google Gemini
- * @param {string} phase - Current cycle phase (menstrual, follicular, ovulation, luteal)
- * @param {number} cycleDay - Current day of cycle
- * @param {number} temperature - Current BBT reading
- * @param {number} avgBBT - Average BBT over recent readings
- * @returns {Promise<string>} Generated tip or null if Gemini unavailable
- */
-async function generateTipWithGemini(phase, cycleDay, temperature, avgBBT) {
-  if (!geminiModel) {
-    return null;
-  }
-
-  try {
-    const phaseDescriptions = {
-      menstrual: 'menstruation (days 1-5)',
-      follicular: 'follicular phase (days 6-13)',
-      ovulation: 'ovulation window (days 14-16)',
-      luteal: 'luteal phase (days 17-28)'
-    };
-
-    const prompt = `You are a helpful health assistant for a menstrual cycle tracking app called Luna. 
-
-The user is currently in the ${phaseDescriptions[phase] || phase} phase, on day ${cycleDay} of their cycle. Their current basal body temperature (BBT) is ${temperature}°C, with an average BBT of ${avgBBT}°C over recent readings.
-
-Generate a brief, supportive, and personalized daily tip (1-2 sentences, max 150 characters) that:
-- Is specific to their current cycle phase
-- Provides practical, actionable advice
-- Is warm, encouraging, and non-medical (no diagnosis or treatment advice)
-- Focuses on wellness, self-care, nutrition, or lifestyle
-
-Keep it concise and friendly. Return only the tip text, no additional formatting.`;
-
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
-    
-    // Clean up the response (remove quotes if present)
-    return text.replace(/^["']|["']$/g, '');
-  } catch (error) {
-    console.error('Error generating tip with Gemini:', error.message);
-    return null;
-  }
-}
-
-/**
- * Generate phase-specific tips using Google Gemini
- * @param {string} phase - Cycle phase
- * @param {number} count - Number of tips to generate (default: 3)
- * @returns {Promise<Array>} Array of tip objects with title and description
- */
-async function generatePhaseTipsWithGemini(phase, count = 3) {
-  if (!geminiModel) {
-    return null;
-  }
-
-  try {
-    const phaseInfo = {
-      menstrual: {
-        name: 'Menstruation',
-        days: 'days 1-5',
-        description: 'the menstrual phase when the body is shedding the uterine lining'
-      },
-      follicular: {
-        name: 'Follicular Phase',
-        days: 'days 6-13',
-        description: 'the follicular phase when estrogen is rising and energy increases'
-      },
-      ovulation: {
-        name: 'Ovulation',
-        days: 'days 14-16',
-        description: 'the ovulation window when fertility peaks and energy is at its highest'
-      },
-      luteal: {
-        name: 'Luteal Phase',
-        days: 'days 17-28',
-        description: 'the luteal phase when progesterone is high and the body prepares for potential pregnancy'
-      }
-    };
-
-    const info = phaseInfo[phase] || phaseInfo.luteal;
-
-    const prompt = `You are a helpful health assistant for a menstrual cycle tracking app. 
-
-Generate ${count} practical, actionable wellness tips for someone in the ${info.name} (${info.days}) of their menstrual cycle. This is ${info.description}.
-
-For each tip, provide:
-1. A short, catchy title (3-6 words)
-2. A brief description (1-2 sentences, max 100 characters)
-
-Format your response as a JSON array with this exact structure:
-[
-  {"title": "Tip Title 1", "description": "Description here"},
-  {"title": "Tip Title 2", "description": "Description here"},
-  {"title": "Tip Title 3", "description": "Description here"}
-]
-
-Make tips:
-- Specific to this cycle phase
-- Practical and actionable
-- Focused on wellness, nutrition, exercise, self-care, or lifestyle
-- Warm and supportive
-- Non-medical (no diagnosis or treatment advice)
-
-Return ONLY the JSON array, no additional text.`;
-
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
-    
-    // Extract JSON from response (handle markdown code blocks if present)
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      const tips = JSON.parse(jsonMatch[0]);
-      return tips;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error generating phase tips with Gemini:', error.message);
-    return null;
-  }
-}
 
 // ========== API ENDPOINTS ==========
 
@@ -323,7 +181,7 @@ app.get('/data', (req, res) => {
 });
 
 // GET /today - Get today's summary (temperature, phase, tip)
-app.get('/today', async (req, res) => {
+app.get('/today', (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -338,38 +196,14 @@ app.get('/today', async (req, res) => {
     // Calculate cycle phase
     const phaseInfo = calculateCyclePhase(temperatureReadings);
     
-    // Try to generate personalized tip with Gemini
-    let tip = phaseInfo.tip;
-    let aiGenerated = false;
-    
-    if (geminiModel) {
-      try {
-        const geminiTip = await generateTipWithGemini(
-          phaseInfo.phase,
-          phaseInfo.day,
-          phaseInfo.temperature,
-          parseFloat(phaseInfo.avgBBT)
-        );
-        
-        if (geminiTip) {
-          tip = geminiTip;
-          aiGenerated = true;
-          console.log('✓ Generated Gemini tip for today');
-        }
-      } catch (error) {
-        console.warn('⚠ Gemini tip generation failed, using default tip:', error.message);
-      }
-    }
-    
     res.json({
       date: today.toISOString().split('T')[0],
       temperature: todayReading ? todayReading.temperature : null,
       hasReading: !!todayReading,
       phase: phaseInfo.phase,
       cycleDay: phaseInfo.day,
-      tip: tip,
-      avgBBT: phaseInfo.avgBBT,
-      aiGenerated: aiGenerated
+      tip: phaseInfo.tip,
+      avgBBT: phaseInfo.avgBBT
     });
   } catch (error) {
     console.error('Error fetching today data:', error);
@@ -604,7 +438,7 @@ app.get('/data/export', (req, res) => {
 });
 
 // GET /tips - Get tips based on current phase
-app.get('/tips', async (req, res) => {
+app.get('/tips', (req, res) => {
   try {
     const phaseInfo = calculateCyclePhase(temperatureReadings);
     const currentPhase = phaseInfo.phase;
@@ -707,75 +541,17 @@ app.get('/tips', async (req, res) => {
       },
     ];
 
-    // Try to generate tips with Gemini, fallback to static tips
-    let tips = staticTips;
-    let useGemini = false;
-    const phases = ['menstrual', 'follicular', 'ovulation', 'luteal'];
-    const phaseConfig = {
-      menstrual: { phase: "Menstruation", icon: "heart", color: "#c14a4a" },
-      follicular: { phase: "Follicular Phase", icon: "sparkles", color: "#93a7d1" },
-      ovulation: { phase: "Ovulation", icon: "activity", color: "#93a7d1" },
-      luteal: { phase: "Luteal Phase", icon: "brain", color: "#9d7089" }
-    };
-
-    if (geminiModel) {
-      try {
-        console.log('🤖 Generating AI tips with Gemini...');
-        tips = { ...staticTips };
-        let generatedCount = 0;
-        
-        // Generate tips for all phases (or at least current phase)
-        // For performance, we can generate all at once or just current phase
-        const phasesToGenerate = phases; // Generate for all phases
-        
-        for (const phase of phasesToGenerate) {
-          try {
-            const geminiTips = await generatePhaseTipsWithGemini(phase, 3);
-            
-            if (geminiTips && geminiTips.length > 0) {
-              const config = phaseConfig[phase];
-              tips[phase] = {
-                phase: config.phase,
-                icon: config.icon,
-                color: config.color,
-                tips: geminiTips
-              };
-              generatedCount++;
-              console.log(`  ✓ Generated ${geminiTips.length} tips for ${config.phase}`);
-            } else {
-              console.log(`  ⚠ No tips generated for ${phase}, using static tips`);
-            }
-          } catch (phaseError) {
-            console.warn(`  ⚠ Error generating tips for ${phase}:`, phaseError.message);
-            // Keep static tips for this phase
-          }
-        }
-        
-        if (generatedCount > 0) {
-          useGemini = true;
-          console.log(`✓ Successfully generated AI tips for ${generatedCount}/${phases.length} phases`);
-        } else {
-          console.warn('⚠ No Gemini tips generated, falling back to static tips');
-        }
-      } catch (error) {
-        console.warn('⚠ Gemini tip generation failed, using static tips:', error.message);
-      }
-    } else {
-      console.log('ℹ Gemini not configured (GEMINI_API_KEY not set), using static tips');
-    }
-
     // Get current phase tips
-    const currentPhaseTips = tips[currentPhase] || tips.luteal;
+    const currentPhaseTips = staticTips[currentPhase] || staticTips.luteal;
     
     // Get all phase tips for display
-    const allPhaseTips = Object.values(tips);
+    const allPhaseTips = Object.values(staticTips);
 
     res.json({
       currentPhase: currentPhase,
       currentPhaseTips: currentPhaseTips,
       allPhaseTips: allPhaseTips,
-      generalTips: generalTips,
-      aiGenerated: useGemini
+      generalTips: generalTips
     });
   } catch (error) {
     console.error('Error fetching tips:', error);
@@ -823,7 +599,10 @@ app.put('/settings', (req, res) => {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', readings: temperatureReadings.length });
+  res.json({ 
+    status: 'ok', 
+    readings: temperatureReadings.length
+  });
 });
 
 // ========== SAMPLE DATA INITIALIZATION ==========
@@ -867,11 +646,6 @@ function initializeSampleData() {
 app.listen(PORT, () => {
   console.log(`\n=== Luna Backend Server ===`);
   console.log(`Server running on http://localhost:${PORT}`);
-  if (geminiModel) {
-    console.log(`🤖 Google Gemini: ENABLED (AI tips active)`);
-  } else {
-    console.log(`ℹ Google Gemini: DISABLED (set GEMINI_API_KEY to enable AI tips)`);
-  }
   console.log(`Endpoints:`);
   console.log(`  POST /temperature - Receive BBT reading`);
   console.log(`  GET  /data        - Get historical data`);

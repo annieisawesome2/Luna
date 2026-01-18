@@ -73,11 +73,6 @@ function TipsPage() {
         </div>
         <h1 className="tips-title">Cycle Tips & Info</h1>
         <p className="tips-subtitle">Learn to work with your cycle</p>
-        {tipsData.aiGenerated && (
-          <div className="ai-badge" style={{ marginTop: '8px', fontSize: '0.75rem', color: '#9d7089', fontStyle: 'italic' }}>
-            ✨ AI-Powered Personalized Tips
-          </div>
-        )}
       </div>
 
       {/* Decorative line */}
@@ -98,11 +93,6 @@ function TipsPage() {
               </span>
             </div>
             <h2 className="phase-title">{phaseInfo.phase}</h2>
-            {tipsData.aiGenerated && (
-              <span className="ai-indicator" style={{ fontSize: '0.7rem', color: '#9d7089', marginLeft: '8px' }}>
-                🤖 AI
-              </span>
-            )}
           </div>
 
           <div className="tips-list">
