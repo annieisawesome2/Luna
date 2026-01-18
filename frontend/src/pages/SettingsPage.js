@@ -43,24 +43,6 @@ function SettingsPage({ onSignOut }) {
     updateSettings(updates);
   };
 
-  const handlePreferenceChange = (key, value) => {
-    const updates = {
-      preferences: {
-        [key]: value
-      }
-    };
-    updateSettings(updates);
-  };
-
-  const handleDeviceConnect = () => {
-    // For MVP, just simulate connection
-    updateSettings({
-      device: {
-        connected: true,
-        deviceName: 'Luna Device'
-      }
-    });
-  };
 
   if (loading || !settings) {
     return (
@@ -168,93 +150,6 @@ function SettingsPage({ onSignOut }) {
               onChange={(e) => handleNotificationChange('ovulationWindow', e.target.checked)}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Units & Preferences */}
-      <div className="settings-card preferences-card">
-        <div className="card-header-with-icon">
-          <img 
-            src="/images/globe-icon.png" 
-            alt="Globe" 
-            className="section-icon"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-          />
-          <span className="section-icon-fallback" style={{ display: 'none' }}>🌐</span>
-          <h2 className="card-title">Units & Preferences</h2>
-        </div>
-
-        <div className="preferences-list">
-          <div className="preference-item">
-            <label className="preference-label">Temperature Unit</label>
-            <select 
-              className="preference-select"
-              value={settings.preferences.temperatureUnit}
-              onChange={(e) => handlePreferenceChange('temperatureUnit', e.target.value)}
-            >
-              <option>Celsius (°C)</option>
-              <option>Fahrenheit (°F)</option>
-            </select>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Bluetooth Connection */}
-      <div className="settings-card">
-        <div className="card-header-with-icon">
-          <img 
-            src="/images/bluetooth-icon.png" 
-            alt="Bluetooth" 
-            className="section-icon"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-          />
-          <span className="section-icon-fallback" style={{ display: 'none' }}>📶</span>
-          <h2 className="card-title">Device Connection</h2>
-        </div>
-
-        <p className="device-description">
-          Connect a Bluetooth thermometer for automatic temperature tracking.
-        </p>
-
-        <button 
-          onClick={handleDeviceConnect}
-          className="settings-button primary"
-        >
-          Connect Device
-        </button>
-
-        <div className="device-status">
-          {settings.device.connected 
-            ? `Connected: ${settings.device.deviceName}`
-            : 'No devices connected'
-          }
-        </div>
-      </div>
-
-      {/* Privacy & Security */}
-      <div className="settings-card privacy-card">
-        <div className="card-header-with-icon">
-          <img 
-            src="/images/lock-icon.png" 
-            alt="Lock" 
-            className="section-icon"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-          />
-          <span className="section-icon-fallback" style={{ display: 'none' }}>🔒</span>
-          <h2 className="card-title">Privacy & Security</h2>
-        </div>
-
-        <div className="privacy-buttons">
-          <button className="settings-button secondary text-left">
-            Privacy Policy
-          </button>
-          <button className="settings-button secondary text-left">
-            Terms of Service
-          </button>
-          <button className="settings-button secondary text-left">
-            Data & Backup
-          </button>
         </div>
       </div>
 
