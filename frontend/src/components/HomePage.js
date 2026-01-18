@@ -69,6 +69,13 @@ function HomePage() {
       setOvulation(tempRes.data.ovulation || null);
       setCalendarData(calendarRes.data);
       setTodayData(todayRes.data);
+      
+      // Debug: log ovulation data
+      console.log('Ovulation data:', {
+        chartOvulation: tempRes.data.ovulation,
+        todayOvulation: todayRes.data.ovulation,
+        daysSinceOvulation: todayRes.data.daysSinceOvulation
+      });
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -311,88 +318,82 @@ function HomePage() {
       })()}
 
       {/* Menstruation Countdown Bar - Only show after ovulation detected */}
-      {ovulation && ovulation.detected && todayData && todayData.daysSinceOvulation !== null && todayData.daysSinceOvulation >= 0 && (
-        <div className="countdown-card">
-          <div className="countdown-header">
-            <h3 className="countdown-title">Menstruation Countdown</h3>
-            <div className="countdown-badge">
-              {14 - todayData.daysSinceOvulation > 0 
-                ? `${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''} remaining`
-                : 'Expected soon'}
-            </div>
-          </div>
-          
-          <div className="countdown-bar-container">
-            <div className="countdown-bar">
-              {/* Progress fill showing days since ovulation */}
-              <div 
-                className="countdown-progress"
-                style={{ 
-                  width: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`,
-                  backgroundColor: todayData.daysSinceOvulation >= 14 ? '#c14a4a' : '#9d7089'
-                }}
-              />
-              
-              {/* Moving marker */}
-              <div 
-                className="countdown-marker"
-                style={{ 
-                  left: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`,
-                  transform: 'translateX(-50%)'
-                }}
-              >
-                <div className="marker-dot"></div>
-                <div className="marker-label">Today</div>
-              </div>
-              
-              {/* Ovulation marker at start */}
-              <div className="countdown-start-marker">
-                <div className="marker-dot" style={{ backgroundColor: '#93a7d1' }}></div>
-                <div className="marker-label">Ovulation</div>
-              </div>
-              
-              {/* Expected menstruation marker at end */}
-              <div className="countdown-end-marker">
-                <div className="marker-dot" style={{ backgroundColor: '#c14a4a' }}></div>
-                <div className="marker-label">Expected</div>
-              </div>
-            </div>
-            
-            <div className="countdown-info">
-              <p className="countdown-text">
-                {todayData.daysSinceOvulation === 0 
-                  ? 'Ovulation detected today. Menstruation expected in 14 days.'
-                  : todayData.daysSinceOvulation < 14
-                  ? `Day ${todayData.daysSinceOvulation} of 14. Menstruation expected in ${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''}.`
-                  : 'Menstruation expected to start soon based on ovulation detection.'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Phase Legend Card */}
-      <div className="legend-card">
-        <h3 className="legend-title">Detected Phases</h3>
+      {(() => {
+        // Use todayData.ovulation if available, otherwise fall back to ovulation from chart
+        const ovulationData = todayData?.ovulation || ovulation;
+        const daysSinceOv = todayData?.daysSinceOvulation;
         
-        <div className="legend-items">
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#93a7d1' }}></div>
-            <span className="legend-text">Pre-Ovulation / Ovulation</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#9d7089' }}></div>
-            <span className="legend-text">Luteal Phase (Post-Ovulation)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#c14a4a' }}></div>
-            <span className="legend-text">Pre-Menstrual</span>
-          </div>
-        </div>
-        <p className="legend-note" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '12px', fontStyle: 'italic' }}>
-          Phases are detected from your temperature patterns, not calendar dates.
-        </p>
-      </div>
+        // Debug log
+        console.log('Countdown bar check:', {
+          ovulationData,
+          daysSinceOv,
+          shouldShow: ovulationData && ovulationData.detected && daysSinceOv !== null && daysSinceOv >= 0
+        });
+        
+        if (ovulationData && ovulationData.detected && daysSinceOv !== null && daysSinceOv >= 0) {
+          return (
+            <div className="countdown-card">
+              <div className="countdown-header">
+                <h3 className="countdown-title">Menstruation Countdown</h3>
+                <div className="countdown-badge">
+                  {14 - daysSinceOv > 0 
+                    ? `${14 - daysSinceOv} day${14 - daysSinceOv !== 1 ? 's' : ''} remaining`
+                    : 'Expected soon'}
+                </div>
+              </div>
+              
+              <div className="countdown-bar-container">
+                <div className="countdown-bar">
+                  {/* Progress fill showing days since ovulation */}
+                  <div 
+                    className="countdown-progress"
+                    style={{ 
+                      width: `${Math.min((daysSinceOv / 14) * 100, 100)}%`,
+                      backgroundColor: daysSinceOv >= 14 ? '#c14a4a' : '#9d7089'
+                    }}
+                  />
+                  
+                  {/* Moving marker */}
+                  <div 
+                    className="countdown-marker"
+                    style={{ 
+                      left: `${Math.min((daysSinceOv / 14) * 100, 100)}%`,
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
+                    <div className="marker-dot"></div>
+                    <div className="marker-label">Today</div>
+                  </div>
+                  
+                  {/* Ovulation marker at start */}
+                  <div className="countdown-start-marker">
+                    <div className="marker-dot" style={{ backgroundColor: '#93a7d1' }}></div>
+                    <div className="marker-label">Ovulation</div>
+                  </div>
+                  
+                  {/* Expected menstruation marker at end */}
+                  <div className="countdown-end-marker">
+                    <div className="marker-dot" style={{ backgroundColor: '#c14a4a' }}></div>
+                    <div className="marker-label">Expected</div>
+                  </div>
+                </div>
+                
+                <div className="countdown-info">
+                  <p className="countdown-text">
+                    {daysSinceOv === 0 
+                      ? 'Ovulation detected today. Menstruation expected in 14 days.'
+                      : daysSinceOv < 14
+                      ? `Day ${daysSinceOv} of 14. Menstruation expected in ${14 - daysSinceOv} day${14 - daysSinceOv !== 1 ? 's' : ''}.`
+                      : 'Menstruation expected to start soon based on ovulation detection.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
     </div>
   );
 }

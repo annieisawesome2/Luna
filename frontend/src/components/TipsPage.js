@@ -14,10 +14,14 @@ const iconMap = {
 
 function TipsPage() {
   const [tipsData, setTipsData] = useState(null);
+  const [bunnyData, setBunnyData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bunnyLoading, setBunnyLoading] = useState(true);
+  const [bunnyError, setBunnyError] = useState(null);
 
   useEffect(() => {
     fetchTips();
+    fetchBunnyGuidance();
   }, []);
 
   const fetchTips = async () => {
@@ -29,6 +33,40 @@ function TipsPage() {
       console.error('Error fetching tips:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBunnyGuidance = async () => {
+    try {
+      setBunnyLoading(true);
+      setBunnyError(null);
+      const response = await axios.get(`${API_BASE_URL}/bunny`);
+      setBunnyData(response.data);
+    } catch (err) {
+      console.error('Error fetching bunny guidance:', err);
+      setBunnyError('Unable to connect to Luna. Using fallback guidance.');
+      // Set fallback data
+      setBunnyData({
+        greeting: "Hello! I'm here to help you understand your cycle.",
+        phaseExplanation: "Keep tracking your temperature daily to understand your body's unique patterns.",
+        food: {
+          focus: "Focus on nourishing your body with whole foods",
+          recommendations: ["Balanced meals", "Plenty of water", "Iron-rich foods"]
+        },
+        exercise: {
+          type: "Gentle movement",
+          intensity: "moderate",
+          guidance: "Listen to your body and choose movement that feels good"
+        },
+        social: {
+          capacity: "medium",
+          guidance: "Honor your energy levels and set boundaries as needed"
+        },
+        closing: "Take care of yourself today!",
+        metadata: { fallback: true }
+      });
+    } finally {
+      setBunnyLoading(false);
     }
   };
 
@@ -79,6 +117,96 @@ function TipsPage() {
       <div className="decorative-line">
         <div className="gradient-line"></div>
       </div>
+
+      {/* Luna Bunny Chat Section */}
+      {bunnyData && (
+        <div className="bunny-chat-card">
+          <div className="bunny-header">
+            <div className="bunny-avatar">
+              <span className="bunny-emoji">🐰</span>
+            </div>
+            <div className="bunny-title-group">
+              <h2 className="bunny-name">Luna</h2>
+              <p className="bunny-subtitle">Your cycle companion</p>
+            </div>
+            {bunnyError && (
+              <div className="bunny-error-badge" title={bunnyError}>
+                ⚠️
+              </div>
+            )}
+          </div>
+
+          {bunnyLoading ? (
+            <div className="bunny-loading">
+              <div className="bunny-loading-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <p>Luna is thinking...</p>
+            </div>
+          ) : (
+            <div className="bunny-message">
+              <div className="bunny-greeting">
+                {bunnyData.greeting}
+              </div>
+
+              <div className="bunny-phase-explanation">
+                {bunnyData.phaseExplanation}
+              </div>
+
+              <div className="bunny-guidance-sections">
+                {/* Food Section */}
+                <div className="bunny-guidance-item food-guidance">
+                  <div className="guidance-header">
+                    <span className="guidance-icon">🍽️</span>
+                    <h3 className="guidance-title">Food Focus</h3>
+                  </div>
+                  <p className="guidance-focus">{bunnyData.food.focus}</p>
+                  <ul className="guidance-list">
+                    {bunnyData.food.recommendations.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Exercise Section */}
+                <div className="bunny-guidance-item exercise-guidance">
+                  <div className="guidance-header">
+                    <span className="guidance-icon">🏃</span>
+                    <h3 className="guidance-title">Exercise</h3>
+                    <span className="intensity-badge" data-intensity={bunnyData.exercise.intensity}>
+                      {bunnyData.exercise.intensity}
+                    </span>
+                  </div>
+                  <p className="guidance-type">{bunnyData.exercise.type}</p>
+                  <p className="guidance-text">{bunnyData.exercise.guidance}</p>
+                </div>
+
+                {/* Social Section */}
+                <div className="bunny-guidance-item social-guidance">
+                  <div className="guidance-header">
+                    <span className="guidance-icon">💬</span>
+                    <h3 className="guidance-title">Social Capacity</h3>
+                    <span className="capacity-badge" data-capacity={bunnyData.social.capacity}>
+                      {bunnyData.social.capacity}
+                    </span>
+                  </div>
+                  <p className="guidance-text">{bunnyData.social.guidance}</p>
+                </div>
+              </div>
+
+              <div className="bunny-closing">
+                {bunnyData.closing}
+              </div>
+
+              {bunnyData.metadata?.fallback && (
+                <div className="bunny-fallback-notice">
+                  <small>Using fallback guidance. Add GEMINI_API_KEY to enable AI-powered insights.</small>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Current Phase Tips (Highlighted) */}
       {tipsData.currentPhaseTips && (

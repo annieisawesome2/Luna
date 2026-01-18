@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -757,30 +758,339 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ========== GEMINI AI INTEGRATION ==========
+
+// Initialize Gemini AI (only if API key is provided)
+// The client gets the API key from the environment variable `GEMINI_API_KEY`
+let ai = null;
+
+if (process.env.GEMINI_API_KEY) {
+  try {
+    ai = new GoogleGenAI({});
+    console.log('✓ Gemini AI initialized');
+  } catch (error) {
+    console.warn('⚠ Gemini AI initialization failed:', error.message);
+  }
+} else {
+  console.warn('⚠ GEMINI_API_KEY not found in environment variables');
+}
+
+/**
+ * Build comprehensive prompt for Luna bunny assistant
+ * @param {Object} phaseInfo - Current phase information from detectCurrentPhase
+ * @param {Object} todayData - Today's data including temperature, trend, etc.
+ * @returns {String} - Formatted prompt for Gemini
+ */
+function buildBunnyPrompt(phaseInfo, todayData) {
+  const phaseDescriptions = {
+    'pre-ovulation': {
+      name: 'Pre-Ovulation Phase',
+      characteristics: 'lower basal body temperature, rising estrogen, increasing energy',
+      typicalDuration: '7-10 days',
+      hormoneFocus: 'Estrogen is rising, preparing your body for ovulation'
+    },
+    'ovulation': {
+      name: 'Ovulation',
+      characteristics: 'temperature rise detected, peak fertility, highest energy',
+      typicalDuration: '1 day (with 3-5 day fertile window)',
+      hormoneFocus: 'Peak estrogen and LH surge, egg release'
+    },
+    'luteal': {
+      name: 'Luteal Phase',
+      characteristics: 'elevated temperature, high progesterone, energy may fluctuate',
+      typicalDuration: '12-14 days after ovulation',
+      hormoneFocus: 'Progesterone is high, supporting potential pregnancy'
+    },
+    'pre-menstrual': {
+      name: 'Pre-Menstrual Phase',
+      characteristics: 'elevated temperature, period approaching, body preparing to shed',
+      typicalDuration: '1-3 days before period starts',
+      hormoneFocus: 'Hormones dropping, body preparing for menstruation'
+    },
+    'insufficient-data': {
+      name: 'Building Baseline',
+      characteristics: 'not enough data yet to detect patterns',
+      typicalDuration: 'until we have 6+ days of tracking',
+      hormoneFocus: 'Tracking daily to understand your unique patterns'
+    },
+    'transition': {
+      name: 'Transition Phase',
+      characteristics: 'temperature pattern suggests approaching ovulation',
+      typicalDuration: 'variable',
+      hormoneFocus: 'Watch for sustained temperature rise'
+    }
+  };
+
+  const phase = phaseDescriptions[phaseInfo.phase] || phaseDescriptions['insufficient-data'];
+  const currentBBT = todayData.temperature || phaseInfo.temperature || 'not recorded yet';
+  const trend = phaseInfo.trend || 'stable';
+  const daysSinceOv = phaseInfo.daysSinceOvulation !== null ? phaseInfo.daysSinceOvulation : 'unknown';
+  const avgBBT = phaseInfo.avgBBT ? phaseInfo.avgBBT.toFixed(2) : 'not available';
+
+  // Get time of day for personalized greeting
+  const hour = new Date().getHours();
+  let timeGreeting = 'Hello';
+  if (hour >= 5 && hour < 12) timeGreeting = 'Good morning';
+  else if (hour >= 12 && hour < 17) timeGreeting = 'Good afternoon';
+  else if (hour >= 17 && hour < 21) timeGreeting = 'Good evening';
+  else timeGreeting = 'Good night';
+
+  const prompt = `You are Luna, a friendly, warm, and supportive animated bunny character who helps people understand their menstrual cycle through body literacy. You speak in a gentle, encouraging, and body-positive way. You're knowledgeable about cycle phases but never medical - always supportive and educational.
+
+${timeGreeting}! Today's cycle context:
+
+**Current Phase:** ${phase.name}
+- Characteristics: ${phase.characteristics}
+- Hormone Focus: ${phase.hormoneFocus}
+- Today's BBT: ${currentBBT}°C
+- Temperature Trend: ${trend}
+- Days Since Ovulation: ${daysSinceOv}
+- Average BBT: ${avgBBT}°C
+
+${phaseInfo.ovulation && phaseInfo.ovulation.detected ? 
+  `- Ovulation was detected on ${new Date(phaseInfo.ovulation.date).toLocaleDateString()} with ${phaseInfo.ovulation.temperatureRise}°C temperature rise` : 
+  '- Ovulation not yet detected (need more tracking data)'}
+
+${phaseInfo.periodPrediction && phaseInfo.periodPrediction.daysUntilMostLikely !== null ?
+  `- Period expected in approximately ${phaseInfo.periodPrediction.daysUntilMostLikely} days` : ''}
+
+**Your task:** Provide a warm, personalized daily message that includes:
+
+1. **Phase Explanation** (2-3 sentences): Briefly explain what phase they're in today in a friendly, encouraging way. Use the bunny's voice - warm and supportive.
+
+2. **Food Focus** (3-5 specific recommendations): Suggest specific foods, meals, or nutrients that support this phase. Be practical and specific (e.g., "Try adding iron-rich spinach to your morning smoothie" not just "eat iron"). Consider:
+   - Pre-ovulation: Foods that support rising energy and estrogen
+   - Ovulation: Nutrient-dense foods for peak performance
+   - Luteal: Foods that support progesterone and stable energy (complex carbs, healthy fats)
+   - Pre-menstrual: Iron-rich foods, magnesium, anti-inflammatory foods
+
+3. **Exercise Guidance** (1-2 sentences): Recommend exercise type and intensity appropriate for this phase:
+   - Pre-ovulation: Higher intensity, strength training, cardio
+   - Ovulation: Peak performance activities
+   - Luteal: Moderate intensity, gentle movement, yoga, walking
+   - Pre-menstrual: Restorative movement, gentle stretching, rest
+
+4. **Social Capacity** (1-2 sentences): Guide them on social energy and boundaries:
+   - Pre-ovulation: Often higher social energy, good for networking
+   - Ovulation: Peak social confidence
+   - Luteal: May need more alone time, smaller gatherings
+   - Pre-menstrual: Honor need for rest, set boundaries
+
+**Tone Guidelines:**
+- Warm and friendly like a caring friend
+- Body-positive and non-judgmental
+- Encouraging but not pushy
+- Educational but not clinical
+- Use "you" and "your body" language
+- Include gentle reminders to listen to their body
+- Keep it conversational, not preachy
+
+**Format your response as JSON:**
+{
+  "greeting": "${timeGreeting}! [warm greeting with bunny personality]",
+  "phaseExplanation": "[2-3 sentences explaining their phase today]",
+  "food": {
+    "focus": "[brief 1-sentence summary]",
+    "recommendations": ["specific food 1", "specific food 2", "specific food 3", "specific food 4"]
+  },
+  "exercise": {
+    "type": "[exercise type]",
+    "intensity": "[low/moderate/high]",
+    "guidance": "[1-2 sentences with specific suggestions]"
+  },
+  "social": {
+    "capacity": "[high/medium/low]",
+    "guidance": "[1-2 sentences about social energy and boundaries]"
+  },
+  "closing": "[encouraging closing message, 1 sentence]"
+}
+
+Remember: You're Luna the bunny - be warm, supportive, and make them feel understood and cared for.`;
+
+  return prompt;
+}
+
+/**
+ * GET /bunny - Get personalized daily guidance from Luna bunny via Gemini AI
+ */
+app.get('/bunny', async (req, res) => {
+  try {
+    // Check if Gemini is available
+    if (!ai) {
+      return res.status(503).json({
+        error: 'Gemini AI not available',
+        message: 'GEMINI_API_KEY not configured. Please add it to your .env file.',
+        fallback: true
+      });
+    }
+
+    // Get current phase and today's data
+    const phaseInfo = detectCurrentPhase(temperatureReadings);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayReading = temperatureReadings.find(r => {
+      const readingDate = new Date(r.timestamp);
+      readingDate.setHours(0, 0, 0, 0);
+      return readingDate.getTime() === today.getTime();
+    });
+
+    const todayData = {
+      date: today.toISOString().split('T')[0],
+      temperature: todayReading ? todayReading.temperature : null,
+      hasReading: !!todayReading,
+      phase: phaseInfo.phase,
+      phaseName: phaseInfo.phaseName,
+      trend: phaseInfo.trend,
+      avgBBT: phaseInfo.avgBBT,
+      ovulation: phaseInfo.ovulation,
+      daysSinceOvulation: phaseInfo.daysSinceOvulation
+    };
+
+    // Build the prompt
+    const prompt = buildBunnyPrompt(phaseInfo, todayData);
+
+    // Call Gemini API using the new SDK structure
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt
+    });
+    
+    // Extract text from response
+    const text = response.text;
+
+    // Try to parse JSON response
+    let bunnyResponse;
+    try {
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+      const jsonText = jsonMatch ? jsonMatch[1] : text;
+      bunnyResponse = JSON.parse(jsonText);
+    } catch (parseError) {
+      // If JSON parsing fails, return the raw text in a structured format
+      console.warn('Failed to parse Gemini response as JSON, using raw text');
+      bunnyResponse = {
+        greeting: "Hello!",
+        phaseExplanation: text.split('\n\n')[0] || text.substring(0, 200),
+        food: {
+          focus: "Focus on nourishing your body",
+          recommendations: ["Whole foods", "Plenty of water", "Balanced meals"]
+        },
+        exercise: {
+          type: "Listen to your body",
+          intensity: "moderate",
+          guidance: "Choose movement that feels good today"
+        },
+        social: {
+          capacity: "medium",
+          guidance: "Honor your energy levels and set boundaries as needed"
+        },
+        closing: "Take care of yourself today!",
+        rawResponse: text
+      };
+    }
+
+    // Add metadata
+    bunnyResponse.metadata = {
+      phase: phaseInfo.phase,
+      phaseName: phaseInfo.phaseName,
+      timestamp: new Date().toISOString(),
+      temperature: todayData.temperature,
+      daysSinceOvulation: phaseInfo.daysSinceOvulation
+    };
+
+    res.json(bunnyResponse);
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    
+    // Fallback to static tips if Gemini fails
+    const phaseInfo = detectCurrentPhase(temperatureReadings);
+    const staticTips = {
+      greeting: "Hello! I'm here to help you understand your cycle.",
+      phaseExplanation: phaseInfo.description || "Keep tracking your temperature daily to understand your body's patterns.",
+      food: {
+        focus: "Focus on nourishing your body with whole foods",
+        recommendations: ["Balanced meals", "Plenty of water", "Iron-rich foods", "Complex carbohydrates"]
+      },
+      exercise: {
+        type: "Gentle movement",
+        intensity: "moderate",
+        guidance: "Listen to your body and choose movement that feels good"
+      },
+      social: {
+        capacity: "medium",
+        guidance: "Honor your energy levels and set boundaries as needed"
+      },
+      closing: "Take care of yourself today!",
+      metadata: {
+        phase: phaseInfo.phase,
+        phaseName: phaseInfo.phaseName,
+        timestamp: new Date().toISOString(),
+        fallback: true
+      }
+    };
+
+    res.status(200).json(staticTips);
+  }
+});
+
+/**
+ * GET /bunny/models - Debug endpoint to list available Gemini models
+ */
+app.get('/bunny/models', async (req, res) => {
+  try {
+    if (!ai) {
+      return res.status(503).json({
+        error: 'Gemini AI not available',
+        message: 'GEMINI_API_KEY not configured'
+      });
+    }
+
+    // Try to list available models
+    const models = await ai.models.list();
+    res.json({
+      available: true,
+      models: models,
+      note: 'Check which models support generateContent method'
+    });
+  } catch (error) {
+    console.error('Error listing models:', error);
+    res.status(500).json({
+      error: 'Failed to list models',
+      message: error.message,
+      suggestion: 'Try using gemini-2.0-flash-exp or gemini-2.0-flash'
+    });
+  }
+});
+
 // ========== SAMPLE DATA INITIALIZATION ==========
 
 function initializeSampleData() {
-  // Generate sample data for last 14 days
+  // Generate sample data for last 20 days to show pre-menstrual phase
+  // Pre-menstrual occurs when ovulation was detected >14 days ago
   const now = new Date();
   const baseTemp = 36.5; // Base BBT in Celsius
   
-  for (let i = 13; i >= 0; i--) {
+  // Pattern: Ovulation detected 16 days ago, now in pre-menstrual phase
+  // We need at least 9 days for ovulation detection, so create 20 days of data
+  for (let i = 19; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
     date.setHours(7, 0, 0, 0); // Morning reading time
     
-    // Simulate cycle pattern
-    const cycleDay = (i % 28) + 1;
-    let temp = baseTemp;
-    
-    if (cycleDay >= 1 && cycleDay <= 5) {
-      temp = baseTemp - 0.2 + (Math.random() * 0.1); // Menstrual: lower
-    } else if (cycleDay >= 6 && cycleDay <= 13) {
-      temp = baseTemp - 0.1 + (Math.random() * 0.15); // Follicular: rising
-    } else if (cycleDay >= 14 && cycleDay <= 16) {
-      temp = baseTemp + 0.4 + (Math.random() * 0.1); // Ovulation: peak
+    let temp;
+    if (i >= 19) {
+      // Days 19-17: Pre-ovulation baseline (lower temps) - 6 days before ovulation
+      temp = baseTemp - 0.15 + (Math.random() * 0.1); // 36.35-36.45 range
+    } else if (i >= 16) {
+      // Days 16-14: Ovulation rise (3 consecutive days above baseline) - detected 16 days ago
+      temp = baseTemp + 0.35 + (Math.random() * 0.1); // 36.75-36.85 range (0.3-0.4°C above baseline)
+    } else if (i >= 2) {
+      // Days 13-2: Luteal phase (sustained high after ovulation)
+      temp = baseTemp + 0.3 + (Math.random() * 0.1); // 36.7-36.8 range
     } else {
-      temp = baseTemp + 0.3 + (Math.random() * 0.15); // Luteal: sustained high
+      // Days 1-0 (today and yesterday): Pre-menstrual - temps may start dropping slightly
+      temp = baseTemp + 0.25 + (Math.random() * 0.1); // 36.65-36.75 range (slightly lower, period approaching)
     }
     
     temperatureReadings.push({
@@ -791,6 +1101,7 @@ function initializeSampleData() {
   }
   
   console.log(`Initialized with ${temperatureReadings.length} sample readings`);
+  console.log(`Sample data pattern: Ovulation detected 16 days ago → Pre-menstrual phase (period expected soon)`);
 }
 
 // ========== START SERVER ==========
@@ -804,5 +1115,7 @@ app.listen(PORT, () => {
   console.log(`  GET  /today       - Get today's summary`);
   console.log(`  GET  /phase       - Get cycle phase info`);
   console.log(`  GET  /tips        - Get wellness tips`);
+  console.log(`  GET  /bunny       - Get Luna bunny AI guidance`);
+  console.log(`  GET  /bunny/models - List available Gemini models (debug)`);
   console.log(`  GET  /health      - Health check\n`);
 });
