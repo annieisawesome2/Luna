@@ -211,19 +211,21 @@ router.get('/health', (req, res) => {
 });
 
 // POST /temperature/seed - Seed sample data (for development)
+// Use ?force=true to clear and reseed
 router.post('/seed', (req, res) => {
   try {
-    const seeded = seedSampleData();
+    const force = req.query.force === 'true';
+    const seeded = seedSampleData(force);
     if (seeded) {
       res.json({ 
         success: true, 
-        message: 'Sample data seeded',
+        message: force ? 'Data cleared and reseeded with ovulation pattern' : 'Sample data seeded with ovulation pattern',
         readings: getReadingsCount()
       });
     } else {
       res.json({ 
         success: false, 
-        message: 'Database already has data',
+        message: 'Database already has data. Use ?force=true to clear and reseed.',
         readings: getReadingsCount()
       });
     }

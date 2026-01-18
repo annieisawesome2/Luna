@@ -104,13 +104,6 @@ function LoginPage({ onLogin }) {
                 : "Already have an account? Sign in"}
             </button>
           </div>
-
-          {/* Decorative sparkles */}
-          <div className="sparkles">
-            <span className="sparkle">✨</span>
-            <span className="sparkle small">✨</span>
-            <span className="sparkle">✨</span>
-          </div>
         </div>
       </div>
     </div>

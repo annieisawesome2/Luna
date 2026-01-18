@@ -218,13 +218,14 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(157, 112, 137, 0.2);
   margin-bottom: 24px;
+  overflow: visible;
 }
 
 .countdown-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .countdown-title {
@@ -234,8 +235,8 @@
 }
 
 .countdown-badge {
-  padding: 6px 12px;
-  border-radius: 12px;
+  padding: 8px 16px;
+  border-radius: 20px;
   background: linear-gradient(135deg, var(--mauve) 0%, var(--periwinkle) 100%);
   color: white;
   font-size: 0.875rem;
@@ -244,15 +245,17 @@
 
 .countdown-bar-container {
   position: relative;
+  padding: 0 40px;
+  margin-bottom: 16px;
 }
 
 .countdown-bar {
   position: relative;
   width: 100%;
-  height: 8px;
+  height: 10px;
   background: var(--pale-lavender);
-  border-radius: 4px;
-  margin: 40px 0 20px 0;
+  border-radius: 5px;
+  margin: 50px 0 40px 0;
 }
 
 .countdown-progress {
@@ -261,17 +264,36 @@
   left: 0;
   height: 100%;
   background: linear-gradient(to right, #9d7089 0%, #c14a4a 100%);
-  border-radius: 4px;
+  border-radius: 5px;
   transition: width 0.3s ease;
 }
 
 .countdown-marker {
   position: absolute;
-  top: -20px;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.countdown-marker .marker-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--mauve);
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.countdown-marker .marker-label {
+  position: absolute;
+  top: 28px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .marker-dot {
@@ -281,11 +303,10 @@
   background: var(--mauve);
   border: 2px solid white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  margin-bottom: 4px;
 }
 
 .marker-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
   white-space: nowrap;
   font-weight: 500;
@@ -293,24 +314,52 @@
 
 .countdown-start-marker {
   position: absolute;
-  top: -20px;
+  top: 50%;
   left: 0;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 5;
 }
 
+.countdown-start-marker .marker-dot {
+  width: 18px;
+  height: 18px;
+  background: #93a7d1;
+}
+
+.countdown-start-marker .marker-label {
+  position: absolute;
+  top: 28px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 .countdown-end-marker {
   position: absolute;
-  top: -20px;
+  top: 50%;
   right: 0;
-  transform: translateX(50%);
+  transform: translate(50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 5;
+}
+
+.countdown-end-marker .marker-dot {
+  width: 18px;
+  height: 18px;
+  background: #c14a4a;
+}
+
+.countdown-end-marker .marker-label {
+  position: absolute;
+  top: 28px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .countdown-info {
@@ -318,7 +367,7 @@
 }
 
 .countdown-text {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.6;
   text-align: center;

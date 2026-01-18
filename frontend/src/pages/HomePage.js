@@ -324,45 +324,43 @@ function HomePage() {
               <div 
                 className="countdown-progress"
                 style={{ 
-                  width: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`,
-                  backgroundColor: todayData.daysSinceOvulation >= 14 ? '#c14a4a' : '#9d7089'
+                  width: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`
                 }}
               />
               
-              {/* Moving marker */}
+              {/* Ovulation marker at start */}
+              <div className="countdown-start-marker">
+                <div className="marker-dot"></div>
+                <div className="marker-label">Ovulation</div>
+              </div>
+              
+              {/* Today marker - moving */}
               <div 
                 className="countdown-marker"
                 style={{ 
-                  left: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`,
-                  transform: 'translateX(-50%)'
+                  left: `${Math.min((todayData.daysSinceOvulation / 14) * 100, 100)}%`
                 }}
               >
                 <div className="marker-dot"></div>
                 <div className="marker-label">Today</div>
               </div>
               
-              {/* Ovulation marker at start */}
-              <div className="countdown-start-marker">
-                <div className="marker-dot" style={{ backgroundColor: '#93a7d1' }}></div>
-                <div className="marker-label">Ovulation</div>
-              </div>
-              
               {/* Expected menstruation marker at end */}
               <div className="countdown-end-marker">
-                <div className="marker-dot" style={{ backgroundColor: '#c14a4a' }}></div>
-                <div className="marker-label">Expected</div>
+                <div className="marker-dot"></div>
+                <div className="marker-label">Period</div>
               </div>
             </div>
-            
-            <div className="countdown-info">
-              <p className="countdown-text">
-                {todayData.daysSinceOvulation === 0 
-                  ? 'Ovulation detected today. Menstruation expected in 14 days.'
-                  : todayData.daysSinceOvulation < 14
-                  ? `Day ${todayData.daysSinceOvulation} of 14. Menstruation expected in ${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''}.`
-                  : 'Menstruation expected to start soon based on ovulation detection.'}
-              </p>
-            </div>
+          </div>
+          
+          <div className="countdown-info">
+            <p className="countdown-text">
+              {todayData.daysSinceOvulation === 0 
+                ? 'Ovulation detected today. Menstruation expected in ~14 days.'
+                : todayData.daysSinceOvulation < 14
+                ? `Day ${todayData.daysSinceOvulation} of 14. Menstruation expected in ${14 - todayData.daysSinceOvulation} day${14 - todayData.daysSinceOvulation !== 1 ? 's' : ''}.`
+                : 'Menstruation expected to start soon.'}
+            </p>
           </div>
         </div>
       )}
