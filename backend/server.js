@@ -757,6 +757,16 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ========== ROUTES ==========
+
+// Make dependencies available to routes via app.locals
+app.locals.temperatureReadings = temperatureReadings;
+app.locals.detectCurrentPhase = detectCurrentPhase;
+
+// Mount bunny/Gemini routes
+const bunnyRoutes = require('./src/routes/bunny');
+app.use('/bunny', bunnyRoutes);
+
 // ========== SAMPLE DATA INITIALIZATION ==========
 
 function initializeSampleData() {
@@ -804,5 +814,9 @@ app.listen(PORT, () => {
   console.log(`  GET  /today       - Get today's summary`);
   console.log(`  GET  /phase       - Get cycle phase info`);
   console.log(`  GET  /tips        - Get wellness tips`);
+  console.log(`  GET  /bunny       - Get Luna bunny AI guidance`);
+  console.log(`  GET  /bunny/status - Check Gemini connection status`);
+  console.log(`  GET  /bunny/models - List available Gemini models (debug)`);
+  console.log(`  POST /bunny/ask   - Ask Luna a question`);
   console.log(`  GET  /health      - Health check\n`);
 });
