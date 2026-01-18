@@ -12,9 +12,9 @@ import {
 } from '../db/temperatureRepository.js';
 import { detectCurrentPhase, detectOvulation } from '../domain/cycleAnalysis.js';
 import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
-import { userSettings } from '../data/store.js';
 
 const router = express.Router();
+const ESP_BASE_URL = 'http://172.20.10.8';
 
 // Helper to get readings in the format expected by cycle analysis
 function getReadingsArray() {
@@ -26,16 +26,20 @@ function getReadingsArray() {
 }
 
 // POST /temperature - Receive BBT reading from ESP32
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+
   try {
-    const { temperatureC } = req.body;
+    const response = await fetch(`${ESP_BASE_URL}/temperature`);
+
+    if (!response.ok) {
+      throw new Error(`ESP responded with ${response.status}`);
+    }
+    const data = await response.json();
+    const { temperatureC } = data;
 
     if (!temperatureC) {
       return res.status(400).json({ error: 'Missing temperature' });
     }
-
-    console.log(`current date: ${getCurrentDate().toISOString()}`);
-    console.log(`user settings: ${userSettings}`);
 
     let isoTimestamp = getCurrentDate().toISOString();
     const reading = insertTemperature(parseFloat(temperatureC), isoTimestamp);
