@@ -6,6 +6,52 @@ const { GoogleGenAI } = require('@google/genai');
 // Key: date string (YYYY-MM-DD), Value: cached response
 const dailyCache = {};
 
+// Track rate-limited models (reset daily)
+// Key: model name, Value: timestamp when rate limited
+const rateLimitedModels = {};
+
+// List of models to try in order (most capable first, then fallbacks)
+const MODEL_FALLBACKS = [
+  "gemini-3-flash-preview",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash-exp",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash-002",
+  "gemini-1.5-flash-001"
+];
+
+// Check if a model was rate limited today
+function isModelRateLimited(modelName) {
+  if (!rateLimitedModels[modelName]) return false;
+  
+  // Check if rate limit was today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const rateLimitDate = new Date(rateLimitedModels[modelName]);
+  rateLimitDate.setHours(0, 0, 0, 0);
+  
+  // If rate limit was today, skip this model
+  return rateLimitDate.getTime() === today.getTime();
+}
+
+// Mark a model as rate limited
+function markModelRateLimited(modelName) {
+  rateLimitedModels[modelName] = new Date().toISOString();
+  console.warn(`⚠ Model ${modelName} rate limited, will skip until tomorrow`);
+}
+
+// Clean up old rate limit records (older than 1 day)
+function cleanupRateLimitCache() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  Object.keys(rateLimitedModels).forEach(modelName => {
+    if (new Date(rateLimitedModels[modelName]) < yesterday) {
+      delete rateLimitedModels[modelName];
+    }
+  });
+}
+
 // Initialize Gemini AI (only if API key is provided)
 // The client needs the API key to be explicitly passed or in GEMINI_API_KEY env var
 let ai = null;
@@ -218,51 +264,78 @@ router.get('/', async (req, res) => {
     // Build the prompt
     const prompt = buildBunnyPrompt(phaseInfo, todayData);
 
-    // Call Gemini API using the new SDK structure
-    // Matches the example pattern: ai.models.generateContent({ model, contents })
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt
-      });
-    } catch (apiError) {
-      // Handle rate limit errors gracefully
-      if (apiError.message && apiError.message.includes('429')) {
-        console.warn('⚠ Rate limit exceeded, using fallback response');
-        // Return fallback response (will be cached for the day)
-        const { temperatureReadings, detectCurrentPhase } = req.app.locals;
-        const phaseInfo = detectCurrentPhase(temperatureReadings);
-        const fallbackResponse = {
-          greeting: "Hello! I'm here to help you understand your cycle.",
-          phaseExplanation: phaseInfo.description || "Keep tracking your temperature daily to understand your body's patterns.",
-          food: {
-            focus: "Focus on nourishing your body with whole foods",
-            recommendations: ["Balanced meals", "Plenty of water", "Iron-rich foods", "Complex carbohydrates"]
-          },
-          exercise: {
-            type: "Gentle movement",
-            intensity: "moderate",
-            guidance: "Listen to your body and choose movement that feels good"
-          },
-          social: {
-            capacity: "medium",
-            guidance: "Honor your energy levels and set boundaries as needed"
-          },
-          closing: "Take care of yourself today!",
-          metadata: {
-            phase: phaseInfo.phase,
-            phaseName: phaseInfo.phaseName,
-            timestamp: new Date().toISOString(),
-            fallback: true,
-            rateLimitExceeded: true
-          }
-        };
-        // Cache the fallback response
-        dailyCache[todayStr] = fallbackResponse;
-        return res.status(200).json(fallbackResponse);
+    // Clean up old rate limit records
+    cleanupRateLimitCache();
+
+    // Try models in order until one works
+    let response = null;
+    let lastError = null;
+    let usedModel = null;
+
+    for (const modelName of MODEL_FALLBACKS) {
+      // Skip models that are rate limited today
+      if (isModelRateLimited(modelName)) {
+        console.log(`⏭ Skipping ${modelName} (rate limited today)`);
+        continue;
       }
-      throw apiError; // Re-throw if it's not a rate limit error
+
+      try {
+        console.log(`🔄 Trying model: ${modelName}`);
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt
+        });
+        usedModel = modelName;
+        console.log(`✓ Successfully used model: ${modelName}`);
+        break; // Success! Exit loop
+      } catch (apiError) {
+        lastError = apiError;
+        
+        // If rate limited, mark this model and try next
+        if (apiError.message && (apiError.message.includes('429') || apiError.message.includes('RESOURCE_EXHAUSTED'))) {
+          markModelRateLimited(modelName);
+          console.warn(`⚠ ${modelName} rate limited, trying next model...`);
+          continue; // Try next model
+        }
+        
+        // For other errors, log and try next model
+        console.warn(`⚠ ${modelName} failed: ${apiError.message}, trying next model...`);
+        continue;
+      }
+    }
+
+    // If all models failed, use fallback
+    if (!response) {
+      console.warn('⚠ All models failed, using fallback response');
+      const fallbackResponse = {
+        greeting: "Hello! I'm here to help you understand your cycle.",
+        phaseExplanation: phaseInfo.description || "Keep tracking your temperature daily to understand your body's patterns.",
+        food: {
+          focus: "Focus on nourishing your body with whole foods",
+          recommendations: ["Balanced meals", "Plenty of water", "Iron-rich foods", "Complex carbohydrates"]
+        },
+        exercise: {
+          type: "Gentle movement",
+          intensity: "moderate",
+          guidance: "Listen to your body and choose movement that feels good"
+        },
+        social: {
+          capacity: "medium",
+          guidance: "Honor your energy levels and set boundaries as needed"
+        },
+        closing: "Take care of yourself today!",
+        metadata: {
+          phase: phaseInfo.phase,
+          phaseName: phaseInfo.phaseName,
+          timestamp: new Date().toISOString(),
+          fallback: true,
+          rateLimitExceeded: true,
+          lastError: lastError?.message
+        }
+      };
+      // Cache the fallback response
+      dailyCache[todayStr] = fallbackResponse;
+      return res.status(200).json(fallbackResponse);
     }
     
     // Extract text from response (response.text is a property, not a method)
@@ -305,7 +378,8 @@ router.get('/', async (req, res) => {
       phaseName: phaseInfo.phaseName,
       timestamp: new Date().toISOString(),
       temperature: todayData.temperature,
-      daysSinceOvulation: phaseInfo.daysSinceOvulation
+      daysSinceOvulation: phaseInfo.daysSinceOvulation,
+      model: usedModel
     };
 
     // Cache the response for today
@@ -424,23 +498,54 @@ Please provide a warm, helpful, and supportive answer to their question. Keep it
 
 Keep your response concise (2-4 sentences) and conversational.`;
 
-    // Call Gemini API
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: contextPrompt
-      });
-    } catch (apiError) {
-      // Handle rate limit errors
-      if (apiError.message && apiError.message.includes('429')) {
-        return res.status(429).json({
-          error: 'Rate limit exceeded',
-          message: 'Luna is taking a break. Please try again later or wait until tomorrow.',
-          fallback: true
-        });
+    // Clean up old rate limit records
+    cleanupRateLimitCache();
+
+    // Try models in order until one works
+    let response = null;
+    let lastError = null;
+    let usedModel = null;
+
+    for (const modelName of MODEL_FALLBACKS) {
+      // Skip models that are rate limited today
+      if (isModelRateLimited(modelName)) {
+        console.log(`⏭ Skipping ${modelName} (rate limited today)`);
+        continue;
       }
-      throw apiError;
+
+      try {
+        console.log(`🔄 Trying model: ${modelName} for question`);
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: contextPrompt
+        });
+        usedModel = modelName;
+        console.log(`✓ Successfully used model: ${modelName} for question`);
+        break; // Success! Exit loop
+      } catch (apiError) {
+        lastError = apiError;
+        
+        // If rate limited, mark this model and try next
+        if (apiError.message && (apiError.message.includes('429') || apiError.message.includes('RESOURCE_EXHAUSTED'))) {
+          markModelRateLimited(modelName);
+          console.warn(`⚠ ${modelName} rate limited, trying next model...`);
+          continue; // Try next model
+        }
+        
+        // For other errors, log and try next model
+        console.warn(`⚠ ${modelName} failed: ${apiError.message}, trying next model...`);
+        continue;
+      }
+    }
+
+    // If all models failed, return error
+    if (!response) {
+      return res.status(429).json({
+        error: 'All models rate limited',
+        message: 'Luna is taking a break. Please try again later or wait until tomorrow.',
+        fallback: true,
+        rateLimitedModels: Object.keys(rateLimitedModels)
+      });
     }
 
     const text = response.text;
@@ -450,7 +555,8 @@ Keep your response concise (2-4 sentences) and conversational.`;
       answer: text,
       timestamp: new Date().toISOString(),
       phase: phaseInfo.phase,
-      phaseName: phaseInfo.phaseName
+      phaseName: phaseInfo.phaseName,
+      model: usedModel
     });
   } catch (error) {
     console.error('Error processing question:', error);
