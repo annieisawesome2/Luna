@@ -14,7 +14,7 @@ import { detectCurrentPhase, detectOvulation } from '../domain/cycleAnalysis.js'
 import { getCurrentDate, getCurrentDateKeyUTC } from '../utils/currentDate.js';
 
 const router = express.Router();
-const ESP_BASE_URL = 'http://172.20.10.8';
+const ESP_BASE_URL = 'http://172.20.10.3';
 
 async function fetchEspTemperatureJson() {
   // Try the endpoint you confirmed first, then fall back to a simpler path.

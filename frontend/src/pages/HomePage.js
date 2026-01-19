@@ -167,6 +167,21 @@ function HomePage() {
       })()
     : null;
 
+  const tempValues = (temperatureData || [])
+    .map((d) => d?.temp)
+    .filter((v) => typeof v === 'number' && Number.isFinite(v));
+
+  const yDomain = (() => {
+    if (tempValues.length === 0) return [0, 1];
+    const min = Math.min(...tempValues);
+    const max = Math.max(...tempValues);
+    const range = Math.max(0.01, max - min);
+    const pad = Math.max(0.25, range * 0.35);
+    const lo = Math.floor((min - pad) * 10) / 10;
+    const hi = Math.ceil((max + pad) * 10) / 10;
+    return [lo, hi];
+  })();
+
   return (
     <div className="data-page">
       {/* Header */}
@@ -198,7 +213,8 @@ function HomePage() {
                 interval="preserveStartEnd"
               />
               <YAxis
-                domain={[36, 37]}
+                domain={yDomain}
+                tickCount={6}
                 label={{ value: "Temperature (°C)", angle: -90, position: "insideLeft" }}
                 stroke="#4a2f3f"
                 tick={{ fill: "#4a2f3f", fontSize: 12 }}

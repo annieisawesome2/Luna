@@ -127,14 +127,16 @@ export function seedSampleData(force = false) {
   
   // Generate 28 days of sample data to show a full cycle
   // Typical cycle: 
-  //   - Days 1-5: Menstruation (lower temps ~36.2-36.4)
-  //   - Days 6-13: Follicular phase (low temps ~36.3-36.5)
+  //   - Days 1-5: Menstruation (lower temps; demo uses room-temp range)
+  //   - Days 6-13: Follicular phase (stable low temps)
   //   - Day 14: Ovulation day - slight dip then spike
-  //   - Days 15-28: Luteal phase (elevated temps ~36.7-37.0)
+  //   - Days 15-28: Luteal phase (elevated temps)
   //   - Period expected ~14 days after ovulation
-  
-  const baselineTemp = 36.35; // Pre-ovulation baseline
-  const postOvulationTemp = 36.75; // Post-ovulation baseline (0.3-0.4°C higher)
+
+  // NOTE: For demos, the sensor may read closer to room temperature than true BBT.
+  // Keep the *pattern* (dip + clear sustained rise) so ovulation detection still works.
+  const baselineTemp = 23.10; // Pre-ovulation baseline (room-temp demo)
+  const postOvulationTemp = 23.65; // Post-ovulation baseline (>= 0.3°C higher)
   
   for (let i = 27; i >= 0; i--) {
     const date = new Date(today);
@@ -184,7 +186,7 @@ export function seedSampleData(force = false) {
   
   insertMany(readings);
   console.log(`✓ Seeded ${readings.length} sample temperature readings`);
-  console.log(`  Ovulation detected around day 14 (${readings[14].timestamp.split('T')[0]})`);
+  console.log(`  Ovulation detected around day 14 (${readings[13].timestamp.split('T')[0]})`);
   console.log(`  Expected period: ~14 days after ovulation`);
   return true;
 }
